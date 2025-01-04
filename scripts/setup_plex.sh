@@ -76,14 +76,35 @@ if [ -n "$detected_ip" ]; then
     echo -e "Detected IP: ${GREEN}$detected_ip${NC}"
 fi
 
-echo "Enter your server IP address (or press Enter for localhost):"
-read -r plex_host
-if [ -n "$plex_host" ]; then
-    sed -i "s/PLEX_HOST=.*/PLEX_HOST=$plex_host/" .env
-    echo -e "${GREEN}✓ Plex host set to: $plex_host${NC}"
-else
-    echo -e "${YELLOW}Using localhost for Plex host${NC}"
-fi
+echo -e "Choose how to access Plex:"
+echo "1) IP Address (detected: ${GREEN}$detected_ip${NC})"
+echo "2) Custom Domain"
+echo "3) Localhost"
+read -r host_choice
+
+case $host_choice in
+    1)
+        plex_host="$detected_ip"
+        echo -e "${GREEN}✓ Using IP address: $plex_host${NC}"
+        ;;
+    2)
+        echo "Enter your domain (e.g., plex.yourdomain.com):"
+        read -r plex_host
+        echo -e "${YELLOW}Note: Make sure DNS record points to: $detected_ip${NC}"
+        ;;
+    3|"")
+        plex_host="localhost"
+        echo -e "${YELLOW}Using localhost${NC}"
+        ;;
+    *)
+        echo -e "${RED}Invalid choice. Using localhost${NC}"
+        plex_host="localhost"
+        ;;
+esac
+
+# Update PLEX_HOST in .env
+sed -i "s/PLEX_HOST=.*/PLEX_HOST=$plex_host/" .env
+echo -e "${GREEN}✓ Plex host set to: $plex_host${NC}"
 
 # Configure timezone
 echo "Select timezone:"

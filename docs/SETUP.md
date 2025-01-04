@@ -22,7 +22,10 @@ chmod +x scripts/*.sh
 ```
 You'll need:
 - Plex claim token from https://plex.tv/claim
-- Your server's IP address
+- Access method:
+  * Server IP address (auto-detected)
+  * Custom domain (DNS must be configured)
+  * Localhost (for local access only)
 - Preferred timezone
 
 ### 2. Email Setup (Optional)
