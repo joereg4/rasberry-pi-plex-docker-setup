@@ -25,7 +25,7 @@
 ## 2. Initial Access
 1. **Get Server Details**:
    - Note IPv4/IPv6 addresses
-   - Note Instance ID
+   - Note Instance ID (UUID from URL: .../instance/id=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
 
 2. **SSH Access**:
    ```bash
@@ -69,7 +69,7 @@
 1. Create in same region as server
 2. Start with 100GB (expandable)
 3. Attach to your instance
-4. Note Block Storage ID
+4. Note Block Storage ID (UUID from URL: .../block-storage/id=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
 
 ## Next Steps
 - Add media files
