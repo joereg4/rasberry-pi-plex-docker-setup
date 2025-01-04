@@ -78,6 +78,7 @@ If you want to use a custom domain (e.g., plex.yourdomain.com):
 1. Add DNS record:
    - Create an A record pointing to your server IP
    - Example: `plex.yourdomain.com -> YOUR_SERVER_IP`
+   - For Cloudflare users, see [DOMAIN_SETUP.md](docs/DOMAIN_SETUP.md)
 
 2. Update `.env`:
    ```bash
