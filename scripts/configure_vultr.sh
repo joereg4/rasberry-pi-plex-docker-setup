@@ -10,23 +10,32 @@ export NC='\033[0m'
 install_vultr_cli() {
     echo "Installing Vultr CLI..."
     
-    # Install Go if not present
-    if ! command -v go &> /dev/null; then
-        echo "Installing Go..."
-        apt-get install -y golang-go
-    fi
+    # Install Go 1.20+
+    echo "Installing Go..."
+    wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz
+    rm -rf /usr/local/go && tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
+    export PATH=$PATH:/usr/local/go/bin
+    rm go1.20.14.linux-amd64.tar.gz
+    
+    # Setup Go workspace
+    mkdir -p ~/go/{bin,pkg,src}
+    export GOPATH=$HOME/go
+    export PATH=$PATH:$GOPATH/bin
+    export GO111MODULE=on
     
     # Install Vultr CLI
-    go install github.com/vultr/vultr-cli/v3@latest
-    
-    # Move to system path
-    if [ -f ~/go/bin/vultr-cli ]; then
-        mv ~/go/bin/vultr-cli /usr/local/bin/
-    fi
+    echo "Installing Vultr CLI..."
+    go install github.com/vultr/vultr-cli/v3@v3.3.0
     
     # Verify installation
     if ! command -v vultr-cli &> /dev/null; then
         echo -e "${RED}Vultr CLI installation failed${NC}"
+        return 1
+    fi
+    
+    # Test CLI works
+    if ! vultr-cli version; then
+        echo -e "${RED}Vultr CLI verification failed${NC}"
         return 1
     fi
     

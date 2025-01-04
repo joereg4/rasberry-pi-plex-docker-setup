@@ -53,6 +53,27 @@ You can configure Vultr either during initial setup or later using the dedicated
 ## 3. Configure Vultr
 You have two options to configure Vultr:
 
+### Option 0: Manual CLI Installation
+```bash
+# Install Go 1.20+
+wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz
+rm -rf /usr/local/go && tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+rm go1.20.14.linux-amd64.tar.gz
+
+# Setup Go workspace
+mkdir -p ~/go/{bin,pkg,src}
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
+export GO111MODULE=on
+
+# Install Vultr CLI
+go install github.com/vultr/vultr-cli/v3@v3.3.0
+
+# Verify installation
+vultr-cli version
+```
+
 ### Option 1: During Setup
 ```bash
 # When running setup.sh, choose 'y' when asked about Vultr configuration
