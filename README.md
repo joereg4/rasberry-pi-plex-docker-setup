@@ -97,6 +97,11 @@ Note: For security reasons, it's recommended to:
 /opt/plex/
 ├── config/    # Plex configuration
 └── media/     # Media files
+
+# When using block storage
+/mnt/blockstore/
+└── plex/
+    └── media/     # Media files on block storage
 ```
 
 ## Environment Variables
@@ -104,6 +109,51 @@ Note: For security reasons, it's recommended to:
 - `PLEX_CLAIM`: Your Plex claim token (get from plex.tv/claim)
 - `PLEX_HOST`: Server IP/hostname or custom domain
 - `TZ`: Timezone (default: America/Chicago)
+
+## Storage Management
+
+Monitor and optimize your Plex storage:
+
+```bash
+# Check storage usage
+./scripts/check_storage.sh
+
+# Find optimization opportunities
+./scripts/optimize_media.sh
+
+# Monitor all storage types
+./scripts/monitor_storage.sh
+
+# Migrate between storage types
+./scripts/migrate_storage.sh to-block    # Move to block storage
+./scripts/migrate_storage.sh to-local    # Move to local storage
+```
+
+The scripts will help you:
+- Track storage usage
+- Identify large files
+- Find optimization candidates
+- Monitor metadata growth
+- Migrate between storage types
+- Monitor storage health
+
+### Block Storage vs Local Storage
+
+**Local Storage**:
+- Included with your instance
+- Better performance
+- Fixed size
+
+**Block Storage**:
+- Can be expanded as needed
+- Movable between instances
+- Additional cost ($1/10GB/month)
+- Slightly lower performance
+
+Choose block storage if you:
+- Need flexible storage sizing
+- Plan to upgrade/migrate servers
+- Want to separate media from system
 
 ## Security Note
 

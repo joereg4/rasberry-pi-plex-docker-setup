@@ -34,3 +34,7 @@ docker-compose.override.yml
 tmp/
 temp/
 *.tmp
+
+# Script outputs
+scripts/*.log
+scripts/reports/
