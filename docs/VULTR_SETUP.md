@@ -40,6 +40,16 @@ You can configure Vultr either during initial setup or later using the dedicated
    ssh -i ~/.ssh/your_key root@YOUR_SERVER_IP
    ```
 
+3. **Setup Repository**:
+   ```bash
+   # Clone repository
+   git clone https://github.com/joereg4/plex-docker-setup.git
+   cd plex-docker-setup
+   
+   # Make scripts executable
+   chmod +x scripts/*.sh
+   ```
+
 ## 3. Configure Vultr
 You have two options to configure Vultr:
 
