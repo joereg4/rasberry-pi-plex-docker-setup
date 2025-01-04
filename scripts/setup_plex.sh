@@ -39,6 +39,16 @@ if ! command -v docker &> /dev/null; then
     systemctl start docker
     systemctl enable docker
     
+    # Configure firewall
+    if command -v ufw &> /dev/null; then
+        echo -e "${YELLOW}Configuring firewall...${NC}"
+        ufw allow 32400/tcp  # Plex main port
+        ufw allow 32469/tcp  # Plex DLNA
+        ufw allow 1900/udp   # Plex DLNA discovery
+        ufw allow 32410:32414/udp  # Plex media streaming
+        echo -e "${GREEN}✓ Firewall configured${NC}"
+    fi
+    
     # Verify installation
     if ! command -v docker &> /dev/null; then
         echo -e "${RED}Docker installation failed${NC}"
@@ -57,6 +67,23 @@ echo "Please get your claim token from https://plex.tv/claim"
 echo "Enter your Plex claim token:"
 read -r plex_claim
 sed -i "s/PLEX_CLAIM=.*/PLEX_CLAIM=$plex_claim/" .env
+
+# Configure PLEX_HOST
+echo -e "\n${YELLOW}Configure Plex Host${NC}"
+# Try to detect server IP
+detected_ip=$(hostname -I | awk '{print $1}')
+if [ -n "$detected_ip" ]; then
+    echo -e "Detected IP: ${GREEN}$detected_ip${NC}"
+fi
+
+echo "Enter your server IP address (or press Enter for localhost):"
+read -r plex_host
+if [ -n "$plex_host" ]; then
+    sed -i "s/PLEX_HOST=.*/PLEX_HOST=$plex_host/" .env
+    echo -e "${GREEN}✓ Plex host set to: $plex_host${NC}"
+else
+    echo -e "${YELLOW}Using localhost for Plex host${NC}"
+fi
 
 # Configure timezone
 echo "Select timezone:"
@@ -82,9 +109,28 @@ sed -i "s|TZ=.*|TZ=$timezone|" .env
 
 # Create directories
 mkdir -p /opt/plex/{config,media}
+# Set permissions
+chown -R 1000:1000 /opt/plex
+chmod -R 755 /opt/plex
 
 # Start Plex
 docker-compose up -d
 
+# Wait for container to start
+echo -e "\n${YELLOW}Waiting for Plex container to start...${NC}"
+sleep 5
+if docker ps | grep -q plex; then
+    echo -e "${GREEN}✓ Plex container is running${NC}"
+else
+    echo -e "${RED}! Plex container failed to start${NC}"
+    echo "Check logs with: docker-compose logs plex"
+fi
+
 echo -e "${GREEN}✓ Plex setup complete!${NC}"
-echo "Access Plex at: http://localhost:32400/web" 
+if [ -n "$plex_host" ]; then
+    echo "Access Plex at: http://$plex_host:32400/web"
+else
+    echo "Access Plex at: http://localhost:32400/web"
+fi
+echo -e "\n${YELLOW}Note: It may take a few minutes for Plex to start up${NC}"
+echo "Check container status with: docker ps" 
