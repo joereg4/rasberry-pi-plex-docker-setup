@@ -3,6 +3,29 @@
 # Error handling
 set -e  # Exit on error
 
+# Create needrestart config directory
+mkdir -p /etc/needrestart/conf.d/
+
+# Pre-configure all system settings to avoid prompts
+echo "libc6 libraries/restart-without-asking boolean true" | debconf-set-selections
+echo "linux-base want-reboot-on-upgrade boolean false" | debconf-set-selections
+echo "needrestart/restart-services boolean false" | debconf-set-selections
+echo "needrestart/kernel-restart-required boolean false" | debconf-set-selections
+
+# Prevent service restarts during upgrade
+cat > /etc/needrestart/conf.d/10-no-restart.conf <<EOF
+\$nrconf{restart} = 'a';
+\$nrconf{kernelhints} = 0;
+\$nrconf{restart_mode} = 'a';
+\$nrconf{kernel_mode} = 'a';
+EOF
+
+# Disable all interactive prompts
+export DEBIAN_FRONTEND=noninteractive
+export NEEDRESTART_MODE=a
+export NEEDRESTART_SUSPEND=1
+export NEEDRESTART_DISABLE=1
+
 # Function to handle errors
 handle_error() {
     local line_number=$1
@@ -30,16 +53,31 @@ in_container() {
     [ -f /.dockerenv ] && return 0 || return 1
 }
 
+# Function to install package non-interactively
+install_package() {
+    local package=$1
+    echo "Installing $package..."
+    if ! apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y -q "$package"; then
+        echo "Failed to install $package"
+        return 1
+    fi
+}
+
 # Update system
 echo "Updating system packages..."
-apt update && apt upgrade -y
+apt-get update
+apt-get upgrade -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y -q
 
 # Install required packages
 echo "Installing required packages..."
 if in_container; then
-    apt install -y git curl wget nano ffmpeg golang-go
+    for pkg in git curl wget nano ffmpeg golang-go; do
+        install_package "$pkg"
+    done
 else
-    apt install -y docker.io docker-compose git ufw htop ffmpeg mailutils
+    for pkg in docker.io docker-compose git ufw htop ffmpeg mailutils; do
+        install_package "$pkg"
+    done
 fi
 
 # Install Vultr CLI
@@ -70,8 +108,34 @@ fi
 # Optional: Configure email if credentials exist
 if [ -n "$SMTP_HOST" ]; then
     echo "Configuring email notifications..."
-    # Install postfix for email capability
-    DEBIAN_FRONTEND=noninteractive apt install -y postfix
+    # Pre-configure all postfix settings
+    debconf-set-selections <<EOF
+    # Kernel upgrade settings
+    linux-base/no-reboot-on-upgrade boolean true
+    linux-base/want-reboot-on-upgrade boolean false
+    
+    # Postfix settings
+    postfix postfix/mailname string $(hostname)
+    postfix postfix/main_mailer_type string 'Internet Site'
+    postfix postfix/destinations string $(hostname), localhost.localdomain, localhost
+    postfix postfix/retry_defer_notify string
+    postfix postfix/kernel_version_warning boolean false
+    postfix postfix/recipient_delim string +
+    postfix postfix/mydomain_warning boolean
+    postfix postfix/mynetworks string 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+    postfix postfix/relayhost string
+    postfix postfix/chattr boolean false
+    postfix postfix/procmail boolean false
+    postfix postfix/root_address string
+    postfix postfix/rfc1035_violation boolean false
+EOF
+    
+    # Install postfix completely non-interactively
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -q postfix
+    
+    # Suppress kernel upgrade prompts
+    echo "libc6 libraries/restart-without-asking boolean true" | debconf-set-selections
+    echo "linux-base want-reboot-on-upgrade boolean false" | debconf-set-selections
 fi
 
 # Verify installations
