@@ -1,83 +1,78 @@
 # Vultr Setup Guide
 
-## Initial Setup
+## 1. Server Creation
+1. **Choose Server Type**:
+   - Regular Cloud Compute
+   - 4 vCPU
+   - 8 GB RAM
+   - 160 GB SSD
 
-### Install Vultr CLI
-The setup script will automatically install Vultr CLI, but you can also install manually:
-```bash
-curl -fsSL https://raw.githubusercontent.com/vultr/vultr-cli/master/scripts/installer.sh | bash
-```
+2. **Server Location**:
+   - Choose nearest datacenter
+   - Note: Block storage must be in same location
 
-### Configure Vultr CLI
-```bash
-# Create config directory
-mkdir -p ~/.vultr-cli
+3. **Server Image**:
+   - Select Ubuntu 22.04 x64 LTS
 
-# Add API key to config
-echo "api-key: YOUR_API_KEY" > ~/.vultr-cli/config.yaml
+4. **Network Options**:
+   - Enable IPv6 (recommended)
+   - Enable VPC Network
 
-# Verify configuration
-vultr-cli account info
-```
+5. **SSH Keys**:
+   - Add your SSH key
+   - Or note the root password
 
-1. **Create API Key**:
-   - Go to [Vultr API Settings](https://my.vultr.com/settings/#settingsapi)
-   - Generate new API key
-   - Add to `.env`: `VULTR_API_KEY=your-key`
+## 2. Initial Access
+1. **Get Server Details**:
+   - Note IPv4/IPv6 addresses
+   - Note Instance ID
 
-2. **Create Block Storage**:
+2. **SSH Access**:
    ```bash
-   # Using vultr-cli
-   vultr-cli block-storage create \
-     --region ewr \
-     --size 100 \
-     --attached-to your-instance-id
-   ```
-   - Note the Block ID
-   - Add to `.env`: `VULTR_BLOCK_ID=your-block-id`
+   # Using password
+   ssh root@YOUR_SERVER_IP
 
-3. **Get Instance ID**:
+   # Or using SSH key
+   ssh -i ~/.ssh/your_key root@YOUR_SERVER_IP
+   ```
+
+## 3. Run Setup Script
+1. **Clone Repository**:
    ```bash
-   vultr-cli instance list
+   git clone https://github.com/joereg4/plex-docker-setup.git
+   cd plex-docker-setup
    ```
-   - Add to `.env`: `VULTR_INSTANCE_ID=your-instance-id`
 
-## Storage Management
+2. **Make Script Executable**:
+   ```bash
+   chmod +x scripts/setup.sh
+   ```
 
-### Manual Expansion
-```bash
-./scripts/manage_storage.sh expand
-```
+3. **Run Setup**:
+   ```bash
+   ./scripts/setup.sh
+   ```
 
-### Automatic Expansion
-The system will automatically expand storage when usage exceeds 75%
+## 4. Post-Setup
+1. **Enable Auto Storage**:
+   ```bash
+   ./scripts/manage_storage.sh auto
+   ```
 
-### Monitoring
-```bash
-./scripts/manage_storage.sh check
-```
+2. **Verify Setup**:
+   ```bash
+   docker ps  # Check container status
+   ./scripts/check_storage.sh  # Verify storage
+   ```
 
-## Cost Management
+## Optional: Block Storage
+1. Create in same region as server
+2. Start with 100GB (expandable)
+3. Attach to your instance
+4. Note Block Storage ID
 
-1. **Block Storage Pricing**:
-   - $1/10GB/month
-   - Billed hourly
-   - Minimum size: 10GB
-   - Maximum size: 10TB
-
-2. **Expansion Strategy**:
-   - Default increment: 100GB
-   - Can be modified in script
-   - Set alerts at 75% and 90%
-
-## Best Practices
-
-1. **API Security**:
-   - Use restricted API keys
-   - Regular key rotation
-   - Never commit keys to git
-
-2. **Cost Control**:
-   - Monitor expansion logs
-   - Set up billing alerts
-   - Review usage patterns 
+## Next Steps
+- Add media files
+- Configure Plex settings
+- Monitor storage usage
+- Set up email notifications 
