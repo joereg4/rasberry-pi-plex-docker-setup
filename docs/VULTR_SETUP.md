@@ -74,13 +74,7 @@ go install github.com/vultr/vultr-cli/v3@v3.3.0
 vultr-cli version
 ```
 
-### Option 1: During Setup
-```bash
-# When running setup.sh, choose 'y' when asked about Vultr configuration
-./scripts/setup.sh
-```
-
-### Option 2: Separate Configuration
+### Option 1: Using Configuration Script
 ```bash
 # Run Vultr configuration separately
 ./scripts/configure_vultr.sh
@@ -116,3 +110,23 @@ The configuration script provides these options:
 - Configure Plex settings
 - Monitor storage usage
 - Set up email notifications 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Finally, configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+Each script can be run independently, but they should be run in this order. 

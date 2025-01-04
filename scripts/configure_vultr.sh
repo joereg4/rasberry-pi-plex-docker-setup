@@ -45,6 +45,16 @@ install_vultr_cli() {
 
 # Function to configure Vultr API
 configure_vultr_api() {
+    # Check for .env file
+    if [ ! -f ".env" ]; then
+        echo -e "${YELLOW}Creating .env file...${NC}"
+        cp .env.example .env
+        if [ ! -f ".env" ]; then
+            echo -e "${RED}Failed to create .env file${NC}"
+            return 1
+        fi
+    fi
+    
     echo "Enter your Vultr API key (from https://my.vultr.com/settings/#settingsapi):"
     read -r api_key
     
@@ -95,6 +105,20 @@ echo "4. Do all steps"
 echo "5. Exit"
 echo "Choose an option (1-5):"
 read -r choice
+
+# Check for .env file
+if [ ! -f ".env" ]; then
+    echo -e "${RED}Error: .env file not found${NC}"
+    echo "Please run setup_plex.sh first"
+    exit 1
+fi
+
+# Check if Plex is configured
+if ! grep -q "PLEX_CLAIM=claim-" .env; then
+    echo -e "${RED}Error: Plex not configured${NC}"
+    echo "Please run setup_plex.sh first"
+    exit 1
+fi
 
 case $choice in
     1) install_vultr_cli ;;
