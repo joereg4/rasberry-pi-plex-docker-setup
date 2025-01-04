@@ -1,0 +1,117 @@
+# Plex Docker Setup
+
+Docker-based Plex Media Server setup with easy deployment options.
+
+## Local Setup
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/joereg4/plex-docker-setup.git
+   cd plex-docker-setup
+   ```
+
+2. Create environment file:
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Update `.env` file:
+   - Get your claim token from [plex.tv/claim](https://plex.tv/claim)
+   - Set PLEX_HOST to `localhost`
+   - Verify timezone is correct
+
+4. Start Plex:
+   ```bash
+   docker-compose up -d
+   ```
+
+## Cloud Deployment
+
+This setup can be deployed to any VPS provider. We recommend [Vultr](https://www.vultr.com/?ref=9448061) for their:
+- Global network of data centers
+- High-performance SSD servers
+- Competitive pricing
+- Simple setup process
+
+1. SSH into your server:
+   ```bash
+   ssh root@YOUR_SERVER_IP
+   ```
+
+2. Run the setup script:
+   ```bash
+   curl -s https://raw.githubusercontent.com/joereg4/plex-docker-setup/main/scripts/setup.sh | bash
+   ```
+
+3. Update `.env` file:
+   ```bash
+   cd plex-docker-setup
+   nano .env
+   ```
+   - Get a new claim token from [plex.tv/claim](https://plex.tv/claim)
+   - Update PLEX_HOST to your server IP
+   - Comment out the localhost line
+
+4. Start Plex:
+   ```bash
+   docker-compose up -d
+   ```
+
+## Security Recommendations
+
+Basic security measures for your server:
+- Use SSH key authentication (strongly recommended)
+- Enable basic firewall rules
+- Keep system and Docker images updated
+- Use strong passwords
+
+For detailed security setup, see [SECURITY.md](docs/SECURITY.md)
+
+## Troubleshooting
+
+Common issues and solutions are documented in [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+
+## Custom Domain Setup
+
+If you want to use a custom domain (e.g., plex.yourdomain.com):
+
+1. Add DNS record:
+   - Create an A record pointing to your server IP
+   - Example: `plex.yourdomain.com -> YOUR_SERVER_IP`
+
+2. Update `.env`:
+   ```bash
+   PLEX_HOST=plex.yourdomain.com
+   ```
+
+Note: For security reasons, it's recommended to:
+- Use HTTPS (Plex handles this automatically)
+- Keep your server updated
+- Use strong passwords
+- Configure your firewall appropriately
+
+## Directory Structure
+
+```
+/opt/plex/
+├── config/    # Plex configuration
+└── media/     # Media files
+```
+
+## Environment Variables
+
+- `PLEX_CLAIM`: Your Plex claim token (get from plex.tv/claim)
+- `PLEX_HOST`: Server IP/hostname or custom domain
+- `TZ`: Timezone (default: America/Chicago)
+
+## Security Note
+
+This is a public repository. Never commit sensitive information like:
+- Claim tokens
+- Passwords
+- API keys
+- Server IPs
+
+## Contributing
+
+Feel free to open issues or submit pull requests! 
