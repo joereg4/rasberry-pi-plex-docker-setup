@@ -1,0 +1,36 @@
+# Environment files
+.env
+*.env
+!.env.example
+
+# Plex specific
+plex-config/
+media/
+transcoding-temp/
+*.plex
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Backup files
+*.bak
+*.backup
+*.swp
+*~
+
+# IDE/Editor specific
+.vscode/
+.idea/
+*.sublime-*
+*.code-workspace
+
+# Temporary files
+tmp/
+temp/
+*.tmp
