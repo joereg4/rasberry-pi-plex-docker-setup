@@ -91,7 +91,41 @@ case $host_choice in
         echo "Enter your domain (e.g., plex.yourdomain.com):"
         read -r plex_host
         echo -e "${YELLOW}Note: Make sure DNS record points to: $detected_ip${NC}"
-        ;;
+        
+        # Try to verify DNS
+        echo -e "\n${YELLOW}Checking DNS resolution...${NC}"
+        resolved_ip=$(dig +short "$plex_host" || host "$plex_host" | grep "has address" | awk '{print $4}')
+        
+        if [ -n "$resolved_ip" ]; then
+            echo -e "${GREEN}✓ Domain resolves to: $resolved_ip${NC}"
+            if [ "$resolved_ip" != "$detected_ip" ]; then
+                echo -e "${RED}Warning: Domain points to different IP${NC}"
+                echo -e "Domain IP: $resolved_ip"
+                echo -e "Server IP: $detected_ip"
+                echo -e "${YELLOW}Please verify your DNS settings${NC}"
+                echo -e "\nTroubleshooting tips:"
+                echo "1. Check DNS records at your provider"
+                echo "2. If using Cloudflare, disable proxy (use DNS only)"
+                echo "3. Wait for DNS propagation (up to 60 minutes)"
+                echo "4. Try: nslookup $plex_host"
+            fi
+        else
+            echo -e "${RED}Warning: Could not resolve domain${NC}"
+            echo "DNS might need time to propagate"
+            echo -e "\nTroubleshooting tips:"
+            echo "1. Verify domain exists and DNS records are set"
+            echo "2. Lower TTL during setup if possible"
+            echo "3. Try: dig $plex_host"
+        fi
+        
+        # Configure UFW for port 80/443 if using domain
+        if command -v ufw &> /dev/null; then
+            echo -e "\n${YELLOW}Configuring firewall for web access...${NC}"
+            ufw allow 80/tcp
+            ufw allow 443/tcp
+            echo -e "${GREEN}✓ Added web ports to firewall${NC}"
+        fi
+         ;;
     3|"")
         plex_host="localhost"
         echo -e "${YELLOW}Using localhost${NC}"

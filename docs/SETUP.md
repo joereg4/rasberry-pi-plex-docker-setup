@@ -28,6 +28,33 @@ You'll need:
   * Localhost (for local access only)
 - Preferred timezone
 
+### Custom Domain Setup
+If using a custom domain:
+1. Add DNS Records:
+   ```
+   Type  Name              Content
+   A     plex              YOUR_SERVER_IP
+   ```
+
+2. Wait for DNS Propagation:
+   - Can take 5-60 minutes
+   - Script will verify DNS resolution
+
+3. Firewall Configuration:
+   - Port 80 (HTTP)
+   - Port 443 (HTTPS)
+   - Plex handles SSL certificates automatically
+
+4. SSL/Security:
+   - Plex generates its own certificates
+   - No need for Certbot/Let's Encrypt
+   - Certificates auto-renew
+
+5. Domain Tips:
+   - Use a dedicated subdomain (e.g., plex.yourdomain.com)
+   - Avoid using Cloudflare proxy (use DNS only)
+   - Keep DNS TTL low during setup (300s/5min)
+
 ### 2. Email Setup (Optional)
 ```bash
 ./scripts/setup_email.sh
