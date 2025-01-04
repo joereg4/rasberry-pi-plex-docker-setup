@@ -75,9 +75,17 @@ if [ -n "$SMTP_HOST" ]; then
 fi
 
 # Verify installations
-for cmd in docker docker-compose git ufw htop ffmpeg vultr-cli; do
-    check_install $cmd
-done
+if in_container; then
+    # Only check required tools for container
+    for cmd in git ffmpeg vultr-cli; do
+        check_install $cmd
+    done
+else
+    # Check all tools for host system
+    for cmd in docker docker-compose git ufw htop ffmpeg vultr-cli; do
+        check_install $cmd
+    done
+fi
 
 # Enable and start Docker
 echo "Configuring Docker..."
@@ -90,15 +98,38 @@ fi
 
 # Configure UFW
 echo "Setting up firewall..."
-if command -v systemctl >/dev/null 2>&1; then
-    ufw default deny incoming
-    ufw default allow outgoing
-    ufw allow ssh
-    ufw allow 32400/tcp  # Plex main port
-    ufw allow 32469/tcp  # Plex DLNA
-    ufw allow 1900/udp   # Plex DLNA discovery
-    ufw allow 32410:32414/udp  # Plex media streaming
-    echo "y" | ufw enable
+if ! in_container; then
+    # Install UFW if not present
+    if ! command -v ufw >/dev/null 2>&1; then
+        echo "Installing UFW..."
+        if ! apt install -y ufw; then
+            echo -e "${RED}Failed to install UFW. Firewall will not be configured.${NC}"
+            return 1
+        fi
+        # Verify UFW installation
+        if ! command -v ufw >/dev/null 2>&1; then
+            echo -e "${RED}UFW installation verified but command not found. Skipping firewall setup.${NC}"
+            return 1
+        fi
+        echo -e "${GREEN}UFW installed successfully${NC}"
+    fi
+
+    # Configure UFW only if installation was successful
+    echo "Configuring UFW rules..."
+    {
+        ufw default deny incoming
+        ufw default allow outgoing
+        ufw allow ssh
+        ufw allow 32400/tcp  # Plex main port
+        ufw allow 32469/tcp  # Plex DLNA
+        ufw allow 1900/udp   # Plex DLNA discovery
+        ufw allow 32410:32414/udp  # Plex media streaming
+        echo "y" | ufw enable
+    } || {
+        echo -e "${RED}Failed to configure UFW rules. Please check UFW status manually.${NC}"
+        return 1
+    }
+    echo -e "${GREEN}Firewall configured successfully${NC}"
 else
     echo "Running in container - skipping firewall configuration"
 fi
@@ -127,9 +158,13 @@ chown -R 1000:1000 /opt/plex
 
 # Clone repository
 echo "Cloning repository..."
-cd /opt
-git clone https://github.com/joereg4/plex-docker-setup.git
-cd plex-docker-setup
+if ! in_container; then
+    cd /opt
+    git clone https://github.com/joereg4/plex-docker-setup.git
+    cd plex-docker-setup
+else
+    echo "Running in container - skipping repository clone"
+fi
 
 # Make scripts executable
 chmod +x scripts/*.sh
@@ -186,7 +221,7 @@ if [ "$configure_plex" = "y" ]; then
         *) timezone="America/New_York" ;;
     esac
     if [ -n "$timezone" ]; then
-        sed -i "s/TZ=.*/TZ=$timezone/" .env
+        sed -i "s|TZ=.*|TZ=$timezone|" .env
     fi
 fi
 
@@ -234,10 +269,10 @@ echo "Would you like to configure email notifications? (y/n)"
 read -r configure_email
 
 if [ "$configure_email" = "y" ]; then
-    echo "Using SendGrid for email notifications"
-    echo "Enter your SendGrid API key:"
-    read -r sendgrid_key
-    sed -i "s/SMTP_PASS=.*/SMTP_PASS=$sendgrid_key/" .env
+    echo "Using Gmail for email notifications"
+    echo "Enter your Gmail app password (create one at https://myaccount.google.com/apppasswords):"
+    read -r email_pass
+    sed -i "s/SMTP_PASS=.*/SMTP_PASS=$email_pass/" .env
 
     echo "Enter your notification email address:"
     read -r notify_email
@@ -246,6 +281,10 @@ if [ "$configure_email" = "y" ]; then
     echo "Enter the email address to send from:"
     read -r smtp_user
     sed -i "s/SMTP_USER=.*/SMTP_USER=$smtp_user/" .env
+
+    # Gmail specific settings
+    sed -i "s/SMTP_HOST=.*/SMTP_HOST=smtp.gmail.com/" .env
+    sed -i "s/SMTP_PORT=.*/SMTP_PORT=587/" .env
 fi
 
 # Set up automatic storage checks
