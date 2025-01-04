@@ -6,6 +6,9 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
+# Default media directory
+MEDIA_DIR="/opt/plex/media"
+
 echo "=== Media Optimization Analysis ==="
 
 # Function to convert size to GB
