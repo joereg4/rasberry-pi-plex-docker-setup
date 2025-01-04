@@ -303,22 +303,129 @@ if [ "$configure_vultr" = "y" ]; then
     # Update .env with Vultr settings
     sed -i "s/VULTR_API_KEY=.*/VULTR_API_KEY=$vultr_api_key/" .env
     
+    # Export API key for immediate use
+    export VULTR_API_KEY="$vultr_api_key"
+    
     # Configure Vultr CLI
     mkdir -p ~/.vultr-cli
     echo "api-key: ${vultr_api_key}" > ~/.vultr-cli/config.yaml
     
     # Get instance information
     echo "Fetching instance information..."
-    if vultr-cli instance list &>/dev/null; then
+    
+    # Function to validate ID format
+    validate_id() {
+        local id=$1
+        local type=$2
+        case $type in
+            "instance")
+                [[ $id =~ ^ins_[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]] && return 0
+                ;;
+            "block")
+                [[ $id =~ ^bs_[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]] && return 0
+                ;;
+        esac
+        return 1
+    }
+    
+    # Function to get current instance ID
+    get_current_instance() {
+        local hostname=$(hostname)
+        vultr-cli instance list | grep -i "$hostname" | awk '{print $1}'
+    }
+    
+    echo -e "\n${GREEN}Available Instances:${NC}"
+    vultr-cli instance list
+    echo -e "\n${GREEN}Available Block Storage:${NC}"
+    vultr-cli block-storage list
+    
+    echo -e "\n${YELLOW}Copy the IDs from above listings${NC}"
+    
+    if [ $? -eq 0 ]; then
+        # Try to detect current instance
+        detected_instance=$(get_current_instance)
+        if [ -n "$detected_instance" ]; then
+            echo -e "${GREEN}Detected current instance: $detected_instance${NC}"
+            echo "Use this ID? (y/n)"
+            read -r use_detected
+            if [ "$use_detected" = "y" ]; then
+                instance_id=$detected_instance
+            fi
+        fi
+        
         echo "Enter the Block Storage ID (leave blank if not using block storage):"
+        echo "Example format: bs_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
         read -r block_id
         if [ -n "$block_id" ]; then
+            if ! validate_id "$block_id" "block"; then
+                echo -e "${RED}Invalid Block Storage ID format${NC}"
+                echo "Please enter a valid ID (bs_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"
+                read -r block_id
+            fi
             sed -i "s/VULTR_BLOCK_ID=.*/VULTR_BLOCK_ID=$block_id/" .env
         fi
         
-        echo "Enter your Instance ID:"
-        read -r instance_id
+        if [ -z "$instance_id" ]; then
+            echo "Enter your Instance ID:"
+            echo "Example format: ins_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            read -r instance_id
+        fi
+        
+        if ! validate_id "$instance_id" "instance"; then
+            echo -e "${RED}Invalid Instance ID format${NC}"
+            echo "Please enter a valid ID (ins_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"
+            read -r instance_id
+        fi
+        
         sed -i "s/VULTR_INSTANCE_ID=.*/VULTR_INSTANCE_ID=$instance_id/" .env
+        
+        # Verify IDs
+        echo -e "\n${GREEN}Verifying configuration...${NC}"
+        # Verify instance exists
+        if ! vultr-cli instance get "$instance_id" &>/dev/null; then
+            echo -e "${RED}Warning: Could not verify Instance ID${NC}"
+        fi
+        # Verify block storage if provided
+        if [ -n "$block_id" ]; then
+            # Check if block storage exists
+            if ! vultr-cli block-storage get "$block_id" &>/dev/null; then
+                echo -e "${RED}Warning: Could not verify Block Storage ID${NC}"
+            else
+                # Check if block storage is attached to correct instance
+                block_info=$(vultr-cli block-storage get "$block_id")
+                attached_to=$(echo "$block_info" | grep "ATTACHED TO" | awk '{print $3}')
+                
+                if [ "$attached_to" = "$instance_id" ]; then
+                    echo -e "${GREEN}✓ Block storage correctly attached to this instance${NC}"
+                elif [ -n "$attached_to" ]; then
+                    echo -e "${RED}Warning: Block storage is attached to different instance: $attached_to${NC}"
+                    echo "Would you like to detach and reattach to this instance? (y/n)"
+                    read -r reattach
+                    if [ "$reattach" = "y" ]; then
+                        echo "Detaching block storage..."
+                        vultr-cli block-storage detach "$block_id"
+                        sleep 5  # Wait for detachment
+                        echo "Attaching block storage to current instance..."
+                        vultr-cli block-storage attach "$block_id" "$instance_id"
+                        echo -e "${GREEN}✓ Block storage reattached${NC}"
+                    fi
+                else
+                    echo "Block storage is not attached. Attaching now..."
+                    vultr-cli block-storage attach "$block_id" "$instance_id"
+                    echo -e "${GREEN}✓ Block storage attached${NC}"
+                fi
+                
+                # Verify mount point
+                if [ -b "/dev/sdb" ]; then
+                    echo -e "${GREEN}✓ Block device detected${NC}"
+                else
+                    echo -e "${YELLOW}! Block device not detected yet. May need to wait or reboot.${NC}"
+                fi
+            fi
+        fi
+        
+        echo "Instance ID: $instance_id"
+        echo "Block Storage ID: ${block_id:-None configured}"
     else
         echo "Failed to connect to Vultr API. Please configure manually later."
     fi
