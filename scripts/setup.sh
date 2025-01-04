@@ -80,16 +80,63 @@ else
     done
 fi
 
+# Function to verify vultr-cli functionality
+verify_vultr_cli() {
+    echo "Verifying Vultr CLI installation..."
+    
+    # Check if binary exists and is executable
+    if ! command -v vultr-cli &> /dev/null; then
+        echo -e "${RED}Error: vultr-cli not found in PATH${NC}"
+        return 1
+    fi
+    
+    # Check version output
+    if ! vultr-cli version &> /dev/null; then
+        echo -e "${RED}Error: vultr-cli version check failed${NC}"
+        return 1
+    fi
+    
+    # Check basic command functionality
+    if ! vultr-cli regions list &> /dev/null; then
+        echo -e "${RED}Error: vultr-cli cannot connect to API${NC}"
+        return 1
+    fi
+    
+    echo -e "${GREEN}✓ Vultr CLI verified${NC}"
+    return 0
+}
+
 # Install Vultr CLI
 echo "Installing Vultr CLI..."
-# Install Go (required for Vultr CLI)
-apt install -y golang-go
 
-# Install Vultr CLI using Go
-go install github.com/vultr/vultr-cli@latest
+# Try official installer first
+if ! curl -fsSL https://raw.githubusercontent.com/vultr/vultr-cli/master/scripts/installer.sh | bash; then
+    echo -e "${YELLOW}Official installer failed, trying alternative method...${NC}"
+    
+    # Alternative installation method
+    if command -v go &> /dev/null; then
+        echo "Installing via Go..."
+        go install github.com/vultr/vultr-cli@latest
+        if [ -f ~/go/bin/vultr-cli ]; then
+            mv ~/go/bin/vultr-cli /usr/local/bin/
+        fi
+    else
+        echo "Installing Go..."
+        apt-get install -y golang-go
+        go install github.com/vultr/vultr-cli@latest
+        if [ -f ~/go/bin/vultr-cli ]; then
+            mv ~/go/bin/vultr-cli /usr/local/bin/
+        fi
+    fi
+fi
 
-# Move vultr-cli to system path
-mv ~/go/bin/vultr-cli /usr/local/bin/
+# Verify installation
+if ! verify_vultr_cli; then
+    echo -e "${RED}Vultr CLI installation failed. Please install manually:${NC}"
+    echo "1. curl -fsSL https://raw.githubusercontent.com/vultr/vultr-cli/master/scripts/installer.sh | bash"
+    echo "2. vultr-cli --help"
+    exit 1
+fi
 
 # Configure Vultr CLI if API key exists
 if [ -n "$VULTR_API_KEY" ]; then
