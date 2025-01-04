@@ -1,5 +1,9 @@
 # Vultr Setup Guide
 
+## Overview
+Vultr configuration is optional and can be done separately from the main setup.
+You can configure Vultr either during initial setup or later using the dedicated script.
+
 ## 1. Server Creation
 1. **Choose Server Type**:
    - Regular Cloud Compute
@@ -36,22 +40,27 @@
    ssh -i ~/.ssh/your_key root@YOUR_SERVER_IP
    ```
 
-## 3. Run Setup Script
-1. **Clone Repository**:
-   ```bash
-   git clone https://github.com/joereg4/plex-docker-setup.git
-   cd plex-docker-setup
-   ```
+## 3. Configure Vultr
+You have two options to configure Vultr:
 
-2. **Make Script Executable**:
-   ```bash
-   chmod +x scripts/setup.sh
-   ```
+### Option 1: During Setup
+```bash
+# When running setup.sh, choose 'y' when asked about Vultr configuration
+./scripts/setup.sh
+```
 
-3. **Run Setup**:
-   ```bash
-   ./scripts/setup.sh
-   ```
+### Option 2: Separate Configuration
+```bash
+# Run Vultr configuration separately
+./scripts/configure_vultr.sh
+```
+
+The configuration script provides these options:
+1. Install Vultr CLI
+2. Configure Vultr API
+3. Configure Instance/Storage
+4. Do all steps
+5. Exit
 
 ## 4. Post-Setup
 1. **Enable Auto Storage**:

@@ -106,36 +106,11 @@ verify_vultr_cli() {
     return 0
 }
 
-# Install Vultr CLI
-echo "Installing Vultr CLI..."
-
-# Try official installer first
-if ! curl -fsSL https://raw.githubusercontent.com/vultr/vultr-cli/master/scripts/installer.sh | bash; then
-    echo -e "${YELLOW}Official installer failed, trying alternative method...${NC}"
-    
-    # Alternative installation method
-    if command -v go &> /dev/null; then
-        echo "Installing via Go..."
-        go install github.com/vultr/vultr-cli@latest
-        if [ -f ~/go/bin/vultr-cli ]; then
-            mv ~/go/bin/vultr-cli /usr/local/bin/
-        fi
-    else
-        echo "Installing Go..."
-        apt-get install -y golang-go
-        go install github.com/vultr/vultr-cli@latest
-        if [ -f ~/go/bin/vultr-cli ]; then
-            mv ~/go/bin/vultr-cli /usr/local/bin/
-        fi
-    fi
-fi
-
-# Verify installation
-if ! verify_vultr_cli; then
-    echo -e "${RED}Vultr CLI installation failed. Please install manually:${NC}"
-    echo "1. curl -fsSL https://raw.githubusercontent.com/vultr/vultr-cli/master/scripts/installer.sh | bash"
-    echo "2. vultr-cli --help"
-    exit 1
+# Optional: Configure Vultr
+echo "Would you like to configure Vultr? (y/n)"
+read -r configure_vultr
+if [ "$configure_vultr" = "y" ]; then
+    ./scripts/configure_vultr.sh
 fi
 
 # Configure Vultr CLI if API key exists
@@ -551,4 +526,25 @@ echo ""
 echo "Reports location: /opt/plex-docker-setup/scripts/reports/"
 echo ""
 echo "To view recent storage report:"
-echo "cat /opt/plex-docker-setup/scripts/reports/storage_$(date +%Y%m%d).log" 
+echo "cat /opt/plex-docker-setup/scripts/reports/storage_$(date +%Y%m%d).log"
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --configure-plex)
+            run_plex_config=true
+            shift
+            ;;
+        --configure-vultr)
+            run_vultr_config=true
+            shift
+            ;;
+        --configure-email)
+            run_email_config=true
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done 
