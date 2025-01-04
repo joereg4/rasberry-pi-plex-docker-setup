@@ -7,12 +7,44 @@ export NC='\033[0m'
 
 echo "=== Plex Setup ==="
 
+# Pre-configure all system settings to avoid prompts
+echo "libc6 libraries/restart-without-asking boolean true" | debconf-set-selections
+echo "linux-base want-reboot-on-upgrade boolean false" | debconf-set-selections
+echo "needrestart/restart-services boolean false" | debconf-set-selections
+echo "needrestart/kernel-restart-required boolean false" | debconf-set-selections
+
+# Prevent service restarts during upgrade
+mkdir -p /etc/needrestart/conf.d/
+cat > /etc/needrestart/conf.d/10-no-restart.conf <<EOF
+\$nrconf{restart} = 'a';
+\$nrconf{kernelhints} = 0;
+\$nrconf{restart_mode} = 'a';
+\$nrconf{kernel_mode} = 'a';
+EOF
+
+# Disable all interactive prompts
+export DEBIAN_FRONTEND=noninteractive
+export NEEDRESTART_MODE=a
+export NEEDRESTART_SUSPEND=1
+export NEEDRESTART_DISABLE=1
+
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
     echo -e "${RED}Error: Docker not installed${NC}"
-    echo "Please install Docker first:"
-    echo "apt update && apt install -y docker.io docker-compose"
-    exit 1
+    echo -e "${YELLOW}Installing Docker...${NC}"
+    apt-get update
+    apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y -q docker.io docker-compose
+    
+    # Start and enable Docker
+    systemctl start docker
+    systemctl enable docker
+    
+    # Verify installation
+    if ! command -v docker &> /dev/null; then
+        echo -e "${RED}Docker installation failed${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}✓ Docker installed successfully${NC}"
 fi
 
 # Check/create .env
