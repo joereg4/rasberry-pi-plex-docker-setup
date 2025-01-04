@@ -166,3 +166,30 @@ This is a public repository. Never commit sensitive information like:
 ## Contributing
 
 Feel free to open issues or submit pull requests! 
+
+## Server Requirements
+
+### Network Configuration
+
+#### IPv6 (Recommended)
+- Enable IPv6 during Vultr instance creation
+- Use IPv6 address in `.env` configuration
+- Better future-proofing
+- Often better performance on modern networks
+
+#### IPv4 (Alternative)
+- Still fully supported
+- Use IPv4 address in `.env` configuration
+- Might be required for some legacy networks
+
+Configure in `.env`:
+```bash
+# For IPv6
+PLEX_HOST=YOUR_IPV6_ADDRESS
+
+# For IPv4
+PLEX_HOST=YOUR_IPV4_ADDRESS
+```
+
+Both address types will work with the setup script and Plex server.
+Choose based on your network requirements and preferences. 
