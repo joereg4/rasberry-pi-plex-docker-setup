@@ -47,6 +47,12 @@ df -h /mnt/blockstore          # Block storage
 ./scripts/manage_storage.sh auto
 ```
 
+The script will:
+- Monitor storage usage
+- Automatically expand when usage > 75%
+- Grow filesystem after expansion
+- Log all operations
+
 ### Storage Health
 ```bash
 # Check storage health

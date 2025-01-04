@@ -11,6 +11,14 @@ ALERT_THRESHOLD=75  # Percentage
 CRITICAL_THRESHOLD=90
 BLOCK_INCREMENT=100  # GB
 
+# Vultr API configuration
+source /opt/plex-docker-setup/.env
+
+if [ -z "$VULTR_API_KEY" ] || [ -z "$VULTR_BLOCK_ID" ]; then
+    echo -e "${RED}Vultr API configuration missing in .env${NC}"
+    exit 1
+fi
+
 # Function to get current usage percentage
 get_usage() {
     local mount=$1
@@ -31,22 +39,33 @@ check_block_storage() {
     return 0
 }
 
-# Function to expand block storage
+# Function to expand block storage using Vultr API
 expand_storage() {
     local current_size=$(get_block_size)
     local new_size=$((current_size + BLOCK_INCREMENT))
     
     echo -e "${YELLOW}Expanding block storage from ${current_size}GB to ${new_size}GB${NC}"
     
-    # Here you would integrate with your cloud provider's API
-    # Example for Vultr (requires vultr-cli):
-    # vultr-cli block-storage resize $BLOCK_ID $new_size
+    # Call Vultr API
+    curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
+         -H "Content-Type: application/json" \
+         -X PATCH \
+         -d "{\"size_gb\": ${new_size}}" \
+         "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}"
     
-    # After expansion, grow the filesystem
-    echo "Growing filesystem..."
-    resize2fs /dev/sdb
-    
-    echo -e "${GREEN}Storage expansion complete${NC}"
+    if [ $? -eq 0 ]; then
+        echo "Waiting for resize to complete..."
+        sleep 30  # Give Vultr time to process
+        
+        # Grow the filesystem
+        echo "Growing filesystem..."
+        resize2fs /dev/sdb
+        
+        echo -e "${GREEN}Storage expansion complete${NC}"
+    else
+        echo -e "${RED}Failed to expand storage via Vultr API${NC}"
+        exit 1
+    fi
 }
 
 # Main logic
