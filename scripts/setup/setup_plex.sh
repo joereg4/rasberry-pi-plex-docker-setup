@@ -267,10 +267,15 @@ if [ ! -f ".gitattributes" ]; then
     echo -e "${GREEN}✓ Created .gitattributes${NC}"
 fi
 
-# Add scripts directory to .gitignore if not already present
-if ! grep -q "^scripts/" .gitignore 2>/dev/null; then
-    echo -e "\n# Ignore script changes\nscripts/" >> .gitignore
-    echo -e "${GREEN}✓ Added scripts directory to .gitignore${NC}"
+# Set core.fileMode to false
+echo -e "\n${YELLOW}Checking Git core.fileMode setting...${NC}"
+current_file_mode=$(git config --get core.fileMode)
+
+if [ "$current_file_mode" != "false" ]; then
+    echo -e "${YELLOW}Setting core.fileMode to false${NC}"
+    git config core.fileMode false
+else
+    echo -e "${GREEN}✓ core.fileMode is already set to false${NC}"
 fi
 
 # Add specific script changes to .gitignore if not already present
