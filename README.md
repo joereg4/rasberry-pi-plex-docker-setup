@@ -116,17 +116,17 @@ Monitor and optimize your Plex storage:
 
 ```bash
 # Check storage usage
-./scripts/check_storage.sh
+./scripts/storage/check_storage.sh
 
 # Find optimization opportunities
-./scripts/optimize_media.sh
+./scripts/optimize/optimize_media.sh
 
 # Monitor all storage types
-./scripts/monitor_storage.sh
+./scripts/storage/monitor_storage.sh
 
 # Migrate between storage types
-./scripts/migrate_storage.sh to-block    # Move to block storage
-./scripts/migrate_storage.sh to-local    # Move to local storage
+./scripts/storage/migrate_storage.sh to-block    # Move to block storage
+./scripts/storage/migrate_storage.sh to-local    # Move to local storage
 ```
 
 The scripts will help you:

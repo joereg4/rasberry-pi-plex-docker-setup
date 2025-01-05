@@ -102,7 +102,7 @@ The configuration script provides these options:
 2. **Verify Setup**:
    ```bash
    docker ps  # Check container status
-   ./scripts/check_storage.sh  # Verify storage
+   ./scripts/storage/check_storage.sh  # Verify storage
    ```
 
 ## Optional: Block Storage

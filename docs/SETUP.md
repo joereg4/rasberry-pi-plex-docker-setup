@@ -18,7 +18,7 @@ chmod +x scripts/*.sh
 
 ### 1. Plex Setup (Required)
 ```bash
-./scripts/setup_plex.sh
+./scripts/setup/setup_plex.sh
 ```
 You'll need:
 - Plex claim token from https://plex.tv/claim
@@ -116,7 +116,7 @@ If any script fails:
 ### Order of Setup
 1. First, set up Plex:
    ```bash
-   ./scripts/setup_plex.sh
+   ./scripts/setup/setup_plex.sh
    ```
 
 2. Then configure email (optional):
