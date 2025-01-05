@@ -236,8 +236,11 @@ echo -e "\n${YELLOW}Setting up weekly cleanup...${NC}"
 (crontab -l 2>/dev/null; echo "0 3 * * 0 $(pwd)/scripts/maintenance/cleanup.sh") | crontab -
 echo -e "${GREEN}✓ Weekly cleanup scheduled${NC}"
 
-# Configure Git permissions
-echo -e "\n${YELLOW}Configuring Git permissions...${NC}"
+# Configure Git and script permissions
+echo -e "\n${YELLOW}Configuring Git and script permissions...${NC}"
+
+# Make all scripts executable
+find "$(dirname "$0")/.." -type f -name "*.sh" -exec chmod +x {} \;
 
 # Create post-merge hook
 mkdir -p .git/hooks
@@ -257,15 +260,10 @@ EOF
 # Make hook executable
 chmod +x .git/hooks/post-merge
 
-# Set initial permissions
-find scripts/ -type f -name "*.sh" -exec chmod +x {} \;
-chmod 600 .env 2>/dev/null || true
-chmod 600 .env.example
-
-echo -e "${GREEN}✓ Git hooks configured${NC}"
-
 # Add gitignore entry if it doesn't exist
 if ! grep -q "scripts/\*\*/\*.sh -diff" .gitignore 2>/dev/null; then
     echo -e "\n# Ignore permission changes on scripts\nscripts/**/*.sh -diff" >> .gitignore
     echo -e "${GREEN}✓ Added script permissions to .gitignore${NC}"
-fi 
+fi
+
+echo -e "${GREEN}✓ Git hooks and permissions configured${NC}" 

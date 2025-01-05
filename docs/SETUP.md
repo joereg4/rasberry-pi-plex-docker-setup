@@ -11,7 +11,7 @@
 # Clone repository
 git clone https://github.com/joereg4/plex-docker-setup.git
 cd plex-docker-setup
-chmod +x scripts/*.sh
+chmod +x scripts/setup/setup_plex.sh
 ```
 
 ## Setup Order
