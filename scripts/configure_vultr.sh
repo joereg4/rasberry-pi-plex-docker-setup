@@ -38,24 +38,38 @@ install_vultr_cli() {
 configure_api() {
     echo -e "\n${YELLOW}Configuring Vultr API...${NC}"
     
-    # Check if API key exists in .env
-    if [ -f .env ] && grep -q "VULTR_API_KEY" .env; then
-        export VULTR_API_KEY=$(grep "VULTR_API_KEY" .env | cut -d '=' -f2)
-    else
+    while true; do
+        # Check if API key exists in .env
+        if [ -f .env ] && grep -q "VULTR_API_KEY" .env; then
+            export VULTR_API_KEY=$(grep "VULTR_API_KEY" .env | cut -d '=' -f2)
+            # Test existing key
+            if vultr-cli account info &>/dev/null; then
+                echo -e "${GREEN}✓ API connection successful${NC}"
+                break
+            else
+                echo -e "${RED}Existing API key is invalid${NC}"
+                # Remove old key from .env
+                sed -i '/VULTR_API_KEY/d' .env
+            fi
+        fi
+        
+        # Ask for new key
         echo "Please get your API key from https://my.vultr.com/settings/#settingsapi"
         echo "Enter your Vultr API key:"
         read -r api_key
+        
+        # Update .env and export
         echo "VULTR_API_KEY=$api_key" >> .env
         export VULTR_API_KEY=$api_key
-    fi
-    
-    # Test API connection
-    if vultr-cli account info; then
-        echo -e "${GREEN}✓ API connection successful${NC}"
-    else
-        echo -e "${RED}API connection failed${NC}"
-        exit 1
-    fi
+        
+        # Test new key
+        if vultr-cli account info &>/dev/null; then
+            echo -e "${GREEN}✓ API connection successful${NC}"
+            break
+        else
+            echo -e "${RED}Invalid API key. Please try again.${NC}"
+        fi
+    done
 }
 
 # Main menu
