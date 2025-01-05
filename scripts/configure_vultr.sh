@@ -74,6 +74,88 @@ configure_api() {
     fi
 }
 
+# Function to validate UUID format
+validate_uuid() {
+    local uuid=$1
+    if [[ ! $uuid =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
+        return 1
+    fi
+    return 0
+}
+
+# Function to configure instance and storage
+configure_instance_storage() {
+    echo -e "\n${YELLOW}Configuring Instance and Storage IDs...${NC}"
+    
+    # List instances
+    echo -e "\n${YELLOW}Available Instances:${NC}"
+    vultr-cli instance list
+    
+    # Get and validate Instance ID
+    while true; do
+        echo -e "\nEnter your Instance ID from above:"
+        read -r instance_id
+        
+        if ! validate_uuid "$instance_id"; then
+            echo -e "${RED}Invalid UUID format. Please try again.${NC}"
+            continue
+        fi
+        
+        # Verify instance exists
+        if vultr-cli instance get "$instance_id" &>/dev/null; then
+            break
+        else
+            echo -e "${RED}Instance ID not found. Please verify and try again.${NC}"
+        fi
+    done
+    
+    # Update Instance ID in .env
+    if grep -q "^VULTR_INSTANCE_ID=" .env; then
+        sed -i '/^VULTR_INSTANCE_ID=/d' .env
+    fi
+    echo "VULTR_INSTANCE_ID=$instance_id" >> .env
+    
+    # List block storage
+    echo -e "\n${YELLOW}Available Block Storage:${NC}"
+    vultr-cli block-storage list
+    
+    # Get and validate Block Storage ID
+    while true; do
+        echo -e "\nEnter your Block Storage ID from above:"
+        read -r block_id
+        
+        if ! validate_uuid "$block_id"; then
+            echo -e "${RED}Invalid UUID format. Please try again.${NC}"
+            continue
+        fi
+        
+        # Verify block storage exists
+        if vultr-cli block-storage get "$block_id" &>/dev/null; then
+            break
+        else
+            echo -e "${RED}Block Storage ID not found. Please verify and try again.${NC}"
+        fi
+    done
+    
+    # Update Block Storage ID in .env
+    if grep -q "^VULTR_BLOCK_ID=" .env; then
+        sed -i '/^VULTR_BLOCK_ID=/d' .env
+    fi
+    echo "VULTR_BLOCK_ID=$block_id" >> .env
+    
+    # Verify IDs were added and show details
+    if grep -q "^VULTR_INSTANCE_ID=" .env && grep -q "^VULTR_BLOCK_ID=" .env; then
+        echo -e "\n${GREEN}✓ Configuration successful${NC}"
+        echo -e "\n${YELLOW}Instance Details:${NC}"
+        vultr-cli instance get "$instance_id"
+        echo -e "\n${YELLOW}Block Storage Details:${NC}"
+        vultr-cli block-storage get "$block_id"
+    else
+        echo -e "${RED}Failed to update IDs${NC}"
+        exit 1
+    fi
+}
+
 # Main menu
 while true; do
     echo -e "\n${YELLOW}Choose an option:${NC}"
@@ -92,12 +174,13 @@ while true; do
             configure_api
             ;;
         3)
-            echo "Configuring Instance/Storage..."
+            configure_instance_storage
             ;;
         4)
             echo "Performing all steps..."
             install_vultr_cli
             configure_api
+            configure_instance_storage
             ;;
         5)
             echo "Exiting..."
