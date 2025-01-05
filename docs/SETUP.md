@@ -143,3 +143,34 @@ If any script fails:
 - Requires API key from Vultr dashboard
 - Will detect existing instance and storage
 - Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
