@@ -83,13 +83,56 @@ validate_uuid() {
     return 0
 }
 
+# Function to check if Vultr CLI is installed
+check_vultr_cli() {
+    if ! command -v vultr-cli &> /dev/null; then
+        echo -e "${RED}Vultr CLI not found. Installing first...${NC}"
+        install_vultr_cli
+        return 1
+    fi
+    return 0
+}
+
+# Function to show clean instance list
+show_instances() {
+    echo -e "\n${YELLOW}Available Instances:${NC}"
+    echo -e "LABEL\t\t\tID"
+    echo "----------------------------------------"
+    vultr-cli instance list | awk '{print $3 "\t\t" $1}' | grep -v "LABEL"
+}
+
+# Function to show clean storage list
+show_storage() {
+    echo -e "\n${YELLOW}Available Block Storage:${NC}"
+    echo -e "LABEL\t\t\tID"
+    echo "----------------------------------------"
+    vultr-cli block-storage list | awk '{print $5 "\t\t" $1}' | grep -v "LABEL"
+}
+
 # Function to configure instance and storage
 configure_instance_storage() {
     echo -e "\n${YELLOW}Configuring Instance and Storage IDs...${NC}"
     
-    # List instances
-    echo -e "\n${YELLOW}Available Instances:${NC}"
-    vultr-cli instance list
+    # Check for Vultr CLI
+    check_vultr_cli
+    
+    # Check for API key in environment
+    if [ -z "$VULTR_API_KEY" ] && [ -f .env ]; then
+        # Extract and clean the API key
+        api_key=$(grep "^VULTR_API_KEY=" .env | cut -d '=' -f2 | tr -d ' #' | tr -d '"')
+        if [ ! -z "$api_key" ]; then
+            export VULTR_API_KEY="$api_key"
+            echo -e "${GREEN}✓ API key loaded from .env${NC}"
+        fi
+    fi
+    
+    if [ -z "$VULTR_API_KEY" ]; then
+        echo -e "${RED}API key not found. Configuring API first...${NC}"
+        configure_api
+    fi
+    
+    # Show clean instance list
+    show_instances
     
     # Get and validate Instance ID
     while true; do
@@ -115,9 +158,8 @@ configure_instance_storage() {
     fi
     echo "VULTR_INSTANCE_ID=$instance_id" >> .env
     
-    # List block storage
-    echo -e "\n${YELLOW}Available Block Storage:${NC}"
-    vultr-cli block-storage list
+    # Show clean storage list
+    show_storage
     
     # Get and validate Block Storage ID
     while true; do
@@ -156,8 +198,37 @@ configure_instance_storage() {
     fi
 }
 
+# Function to load and export Vultr variables from .env
+load_vultr_env() {
+    if [ -f .env ]; then
+        # Load and export API key
+        api_key=$(grep "^VULTR_API_KEY=" .env | cut -d '=' -f2 | tr -d ' #' | tr -d '"')
+        if [ ! -z "$api_key" ]; then
+            export VULTR_API_KEY="$api_key"
+            echo -e "${GREEN}✓ API key loaded${NC}"
+        fi
+        
+        # Load and export Instance ID
+        instance_id=$(grep "^VULTR_INSTANCE_ID=" .env | cut -d '=' -f2 | tr -d ' #' | tr -d '"')
+        if [ ! -z "$instance_id" ]; then
+            export VULTR_INSTANCE_ID="$instance_id"
+            echo -e "${GREEN}✓ Instance ID loaded${NC}"
+        fi
+        
+        # Load and export Block ID
+        block_id=$(grep "^VULTR_BLOCK_ID=" .env | cut -d '=' -f2 | tr -d ' #' | tr -d '"')
+        if [ ! -z "$block_id" ]; then
+            export VULTR_BLOCK_ID="$block_id"
+            echo -e "${GREEN}✓ Block ID loaded${NC}"
+        fi
+    fi
+}
+
 # Main menu
 while true; do
+    # Load environment variables
+    load_vultr_env
+    
     echo -e "\n${YELLOW}Choose an option:${NC}"
     echo "1) Install Vultr CLI"
     echo "2) Configure Vultr API"
@@ -180,6 +251,11 @@ while true; do
             echo "Performing all steps..."
             install_vultr_cli
             configure_api
+            # Add a pause to show progress
+            echo -e "\n${YELLOW}Vultr CLI installed and API configured.${NC}"
+            echo -e "${YELLOW}Proceeding to Instance and Storage configuration...${NC}"
+            echo -e "Press Enter to continue"
+            read
             configure_instance_storage
             ;;
         5)

@@ -55,6 +55,22 @@ If using a custom domain:
    - Avoid using Cloudflare proxy (use DNS only)
    - Keep DNS TTL low during setup (300s/5min)
 
+### Accessing Plex
+1. **Recommended Access**:
+   - https://app.plex.tv/desktop
+     * Sign in with your Plex account
+     * Server automatically appears
+     * No ports or IP needed
+
+2. **Alternative Access**:
+   - Custom domain: http://plex.yourdomain.com:32400/web
+   - Direct IP: http://YOUR_SERVER_IP:32400/web
+
+3. **Mobile Apps**:
+   - Official Plex app
+   - Sign in with same account
+   - Auto-discovers server
+
 ### 2. Email Setup (Optional)
 ```bash
 ./scripts/setup_email.sh
@@ -94,3 +110,27 @@ If any script fails:
 1. Check prerequisites
 2. Verify previous steps completed
 3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Finally, configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 

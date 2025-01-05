@@ -60,3 +60,34 @@ ufw enable
    - Regular config backups
    - Database backups
    - Keep .env file secure 
+
+# Security Considerations
+
+## API Keys
+- Vultr API key stored in .env
+- File permissions should be restricted
+- Never commit .env to repository
+
+## Email Security
+- Gmail App Password used instead of account password
+- Stored in .env file
+- Limited to email notifications only
+
+## File Permissions
+```bash
+# Set correct permissions
+chmod 600 .env
+chmod +x scripts/*.sh
+```
+
+## Environment Variables
+- All sensitive data in .env
+- Loaded only when needed
+- Validated before use
+
+## Best Practices
+1. Keep .env secure
+2. Don't share API keys
+3. Regular security updates
+4. Rotate API keys periodically
+5. Monitor access logs 

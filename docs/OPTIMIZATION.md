@@ -5,6 +5,11 @@
 - CRF 23: Good balance
 - CRF 28: Smaller files, acceptable quality
 
+## Available Scripts
+1. **optimize_local.sh**: Single file optimization
+2. **batch_optimize_local.sh**: Bulk processing of files
+3. **optimize_media.sh**: Server-side optimization
+
 ## Commands
 1. **Single File**:
    ```bash
@@ -19,4 +24,9 @@
 3. **Server Processing**:
    ```bash
    ./scripts/optimize_media.sh /path/to/media 18
-   ``` 
+   ```
+
+## Size Requirements
+- Batch processing targets files larger than 4GB
+- Configurable size threshold in batch script
+- Original files are preserved 
