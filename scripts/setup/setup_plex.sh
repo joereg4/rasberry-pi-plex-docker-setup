@@ -267,4 +267,19 @@ if [ ! -f ".gitattributes" ]; then
     echo -e "${GREEN}✓ Created .gitattributes${NC}"
 fi
 
+# Add scripts directory to .gitignore if not already present
+if ! grep -q "^scripts/" .gitignore 2>/dev/null; then
+    echo -e "\n# Ignore script changes\nscripts/" >> .gitignore
+    echo -e "${GREEN}✓ Added scripts directory to .gitignore${NC}"
+fi
+
+# Add specific script changes to .gitignore if not already present
+if ! grep -q "^scripts/\*\*/\*.log" .gitignore 2>/dev/null; then
+    echo -e "\n# Ignore script outputs and temporary files" >> .gitignore
+    echo "scripts/**/*.log" >> .gitignore
+    echo "scripts/reports/" >> .gitignore
+    echo "scripts/**/*.tmp" >> .gitignore
+    echo -e "${GREEN}✓ Added script outputs to .gitignore${NC}"
+fi
+
 echo -e "${GREEN}✓ Git hooks and permissions configured${NC}" 
