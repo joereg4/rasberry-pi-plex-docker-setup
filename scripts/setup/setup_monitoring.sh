@@ -88,27 +88,41 @@ setup_vultr() {
     
     # Get Vultr configuration
     echo "Enter your Vultr API key (from https://my.vultr.com/settings/#settingsapi):"
-    read -r api_key
+    read -r vultr_api_key
     
-    # Show instances and get ID
-    vultr-cli instance list
-    echo "Enter your Instance ID from above:"
-    read -r instance_id
+    # Update .env and export immediately
+    sed -i "s/VULTR_API_KEY=.*/VULTR_API_KEY=$vultr_api_key/" .env
+    export VULTR_API_KEY="$vultr_api_key"
     
-    # Show block storage and get ID
-    vultr-cli block-storage list
-    echo "Enter your Block Storage ID from above:"
-    read -r block_id
-    
-    # Update .env
-    sed -i "s/VULTR_API_KEY=.*/VULTR_API_KEY=$api_key/" .env
-    sed -i "s/VULTR_INSTANCE_ID=.*/VULTR_INSTANCE_ID=$instance_id/" .env
-    sed -i "s/VULTR_BLOCK_ID=.*/VULTR_BLOCK_ID=$block_id/" .env
-    
-    # Export for immediate use
-    export VULTR_API_KEY="$api_key"
-    export VULTR_INSTANCE_ID="$instance_id"
-    export VULTR_BLOCK_ID="$block_id"
+    # Test the API key
+    if command -v vultr-cli &> /dev/null; then
+        echo -e "\n${YELLOW}Testing Vultr API connection...${NC}"
+        if vultr-cli account info; then
+            echo -e "${GREEN}✓ Vultr API key configured${NC}"
+            
+            # Show instances and get ID
+            vultr-cli instance list
+            echo "Enter your Instance ID from above:"
+            read -r instance_id
+            sed -i "s/VULTR_INSTANCE_ID=.*/VULTR_INSTANCE_ID=$instance_id/" .env
+            export VULTR_INSTANCE_ID="$instance_id"
+            
+            # Ask about block storage
+            echo -e "\n${YELLOW}Do you want to configure block storage? (y/n)${NC}"
+            read -r use_block
+            
+            if [[ $use_block =~ ^[Yy]$ ]]; then
+                vultr-cli block-storage list
+                echo "Enter your Block Storage ID from above:"
+                read -r block_id
+                sed -i "s/VULTR_BLOCK_ID=.*/VULTR_BLOCK_ID=$block_id/" .env
+                export VULTR_BLOCK_ID="$block_id"
+            fi
+        else
+            echo -e "${RED}× Error: Could not connect to Vultr API${NC}"
+            return 1
+        fi
+    fi
 }
 
 # Function to setup monitoring cron jobs
