@@ -36,19 +36,19 @@ echo "Quality: $QUALITY"
 echo -e "\n${YELLOW}Starting batch optimization...${NC}"
 echo -e "Looking for video files in: $SOURCE_DIR"
 
-# Find video files larger than 4GB
-echo -e "\n${YELLOW}Searching for video files larger than 4GB...${NC}"
-find "$SOURCE_DIR" -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.avi" \) -size +4G -print0 | while IFS= read -r -d '' video; do
-    # Show file size
-    size=$(ls -lh "$video" | awk '{print $5}')
-    echo -e "\n${GREEN}Found: $video (Size: $size)${NC}"
-
+find "$SOURCE_DIR" -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.avi" \) -size +4G | while read -r video; do
     filename=$(basename "$video")
     output="$OUTPUT_DIR/${filename%.*}_optimized.mp4"
     
     echo -e "\n${GREEN}Processing: $filename${NC}"
     echo "Full input path: $video"
     echo "Full output path: $output"
+    
+    # Skip if output already exists
+    if [ -f "$output" ]; then
+        echo -e "${YELLOW}Output file already exists, skipping: $output${NC}"
+        continue
+    fi
     
     # Run optimize_local with verbose output
     set -x
@@ -58,10 +58,17 @@ find "$SOURCE_DIR" -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.avi" \)
     # Check if output file was created
     if [ -f "$output" ]; then
         echo -e "${GREEN}Successfully created: $output${NC}"
+        # Show size comparison
+        input_size=$(ls -lh "$video" | awk '{print $5}')
+        output_size=$(ls -lh "$output" | awk '{print $5}')
+        echo -e "Input size: $input_size"
+        echo -e "Output size: $output_size"
     else
         echo -e "${RED}Failed to create: $output${NC}"
     fi
+    
+    echo -e "\n${YELLOW}Moving to next file...${NC}"
 done
 
-echo -e "\n${GREEN}Batch optimization complete!${NC}"
-echo "Optimized files are in: $OUTPUT_DIR" 
+echo -e "\n${GREEN}Batch processing complete!${NC}"
+echo -e "Check optimized files in: $OUTPUT_DIR" 
