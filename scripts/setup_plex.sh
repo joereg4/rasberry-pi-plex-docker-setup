@@ -163,10 +163,20 @@ esac
 sed -i "s|TZ=.*|TZ=$timezone|" .env
 
 # Create directories
-mkdir -p /opt/plex/{config,media}
+echo -e "\n${YELLOW}Creating Plex directories...${NC}"
+mkdir -p /opt/plex/config
+mkdir -p /opt/plex/media/{Movies,TV\ Shows,Music,Photos,Home\ Videos}
+
+# Create symlink for easier access
+ln -s /opt/plex/media /opt/media 2>/dev/null || true
+
 # Set permissions
 chown -R 1000:1000 /opt/plex
 chmod -R 755 /opt/plex
+chmod -R 755 /opt/media 2>/dev/null || true
+
+echo -e "${GREEN}✓ Created standard Plex library folders:${NC}"
+ls -l /opt/plex/media/
 
 # Start Plex
 docker-compose up -d
@@ -188,4 +198,15 @@ else
     echo "Access Plex at: http://localhost:32400/web"
 fi
 echo -e "\n${YELLOW}Note: It may take a few minutes for Plex to start up${NC}"
-echo "Check container status with: docker ps" 
+echo "Check container status with: docker ps"
+
+# Add media location info
+echo -e "\n${GREEN}Media Directory:${NC}"
+echo "Common folders:"
+echo "- /opt/plex/media/Movies"
+echo "- /opt/plex/media/TV Shows"
+echo "- /opt/plex/media/Music"
+echo "- /opt/plex/media/Photos"
+echo "- /opt/plex/media/Home Videos"
+echo -e "${YELLOW}Note: Plex uses case-sensitive folder names${NC}"
+echo -e "${YELLOW}These folders are ready for you to add media${NC}" 
