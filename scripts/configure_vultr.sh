@@ -6,129 +6,89 @@ export GREEN='\033[0;32m'
 export YELLOW='\033[1;33m'
 export NC='\033[0m'
 
-# Function to install Vultr CLI
+# Function to install Go and Vultr CLI
 install_vultr_cli() {
-    echo "Installing Vultr CLI..."
-    
-    # Install Go 1.20+
-    echo "Installing Go..."
+    echo -e "\n${YELLOW}Installing Go...${NC}"
     wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz
-    rm -rf /usr/local/go && tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
-    export PATH=$PATH:/usr/local/go/bin
+    tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
     rm go1.20.14.linux-amd64.tar.gz
     
-    # Setup Go workspace
-    mkdir -p ~/go/{bin,pkg,src}
+    # Set Go environment
+    export PATH=$PATH:/usr/local/go/bin
     export GOPATH=$HOME/go
     export PATH=$PATH:$GOPATH/bin
     export GO111MODULE=on
     
-    # Install Vultr CLI
-    echo "Installing Vultr CLI..."
+    # Setup Go workspace
+    mkdir -p ~/go/{bin,pkg,src}
+    
+    echo -e "\n${YELLOW}Installing Vultr CLI...${NC}"
     go install github.com/vultr/vultr-cli/v3@v3.3.0
     
     # Verify installation
-    if ! command -v vultr-cli &> /dev/null; then
-        echo -e "${RED}Vultr CLI installation failed${NC}"
-        return 1
+    if vultr-cli version; then
+        echo -e "${GREEN}✓ Vultr CLI installed successfully${NC}"
+    else
+        echo -e "${RED}Failed to install Vultr CLI${NC}"
+        exit 1
     fi
-    
-    # Test CLI works
-    if ! vultr-cli version; then
-        echo -e "${RED}Vultr CLI verification failed${NC}"
-        return 1
-    fi
-    
-    echo -e "${GREEN}✓ Vultr CLI installed successfully${NC}"
-    return 0
 }
 
-# Function to configure Vultr API
-configure_vultr_api() {
-    # Check for .env file
-    if [ ! -f ".env" ]; then
-        echo -e "${YELLOW}Creating .env file...${NC}"
-        cp .env.example .env
-        if [ ! -f ".env" ]; then
-            echo -e "${RED}Failed to create .env file${NC}"
-            return 1
-        fi
+# Function to configure API
+configure_api() {
+    echo -e "\n${YELLOW}Configuring Vultr API...${NC}"
+    
+    # Check if API key exists in .env
+    if [ -f .env ] && grep -q "VULTR_API_KEY" .env; then
+        export VULTR_API_KEY=$(grep "VULTR_API_KEY" .env | cut -d '=' -f2)
+    else
+        echo "Please get your API key from https://my.vultr.com/settings/#settingsapi"
+        echo "Enter your Vultr API key:"
+        read -r api_key
+        echo "VULTR_API_KEY=$api_key" >> .env
+        export VULTR_API_KEY=$api_key
     fi
     
-    echo "Enter your Vultr API key (from https://my.vultr.com/settings/#settingsapi):"
-    read -r api_key
-    
-    # Update .env
-    sed -i "s/VULTR_API_KEY=.*/VULTR_API_KEY=$api_key/" .env
-    
-    # Configure CLI
-    mkdir -p ~/.vultr-cli
-    echo "api-key: ${api_key}" > ~/.vultr-cli/config.yaml
-    
-    # Test configuration
-    if ! vultr-cli account info &>/dev/null; then
-        echo -e "${RED}API key verification failed${NC}"
-        return 1
-    fi
-    
-    echo -e "${GREEN}✓ API key configured successfully${NC}"
-    return 0
-}
-
-# Function to configure instance and storage
-configure_instance_storage() {
-    echo -e "\n${GREEN}Available Instances:${NC}"
-    vultr-cli instance list
-    
-    echo -e "\n${GREEN}Available Block Storage:${NC}"
-    vultr-cli block-storage list
-    
-    echo -e "\n${YELLOW}Enter Instance ID (or press Enter to skip):${NC}"
-    read -r instance_id
-    if [ -n "$instance_id" ]; then
-        sed -i "s/VULTR_INSTANCE_ID=.*/VULTR_INSTANCE_ID=$instance_id/" .env
-    fi
-    
-    echo -e "\n${YELLOW}Enter Block Storage ID (or press Enter to skip):${NC}"
-    read -r block_id
-    if [ -n "$block_id" ]; then
-        sed -i "s/VULTR_BLOCK_ID=.*/VULTR_BLOCK_ID=$block_id/" .env
+    # Test API connection
+    if vultr-cli account info; then
+        echo -e "${GREEN}✓ API connection successful${NC}"
+    else
+        echo -e "${RED}API connection failed${NC}"
+        exit 1
     fi
 }
 
 # Main menu
-echo "=== Vultr Configuration ==="
-echo "1. Install Vultr CLI"
-echo "2. Configure Vultr API"
-echo "3. Configure Instance/Storage"
-echo "4. Do all steps"
-echo "5. Exit"
-echo "Choose an option (1-5):"
-read -r choice
-
-# Check for .env file
-if [ ! -f ".env" ]; then
-    echo -e "${RED}Error: .env file not found${NC}"
-    echo "Please run setup_plex.sh first"
-    exit 1
-fi
-
-# Check if Plex is configured
-if ! grep -q "PLEX_CLAIM=claim-" .env; then
-    echo -e "${RED}Error: Plex not configured${NC}"
-    echo "Please run setup_plex.sh first"
-    exit 1
-fi
-
-case $choice in
-    1) install_vultr_cli ;;
-    2) configure_vultr_api ;;
-    3) configure_instance_storage ;;
-    4)
-        install_vultr_cli && \
-        configure_vultr_api && \
-        configure_instance_storage
-        ;;
-    5) exit 0 ;;
-    *) echo "Invalid option" ;;
-esac 
+while true; do
+    echo -e "\n${YELLOW}Choose an option:${NC}"
+    echo "1) Install Vultr CLI"
+    echo "2) Configure Vultr API"
+    echo "3) Configure Instance/Storage"
+    echo "4) Do all steps"
+    echo "5) Exit"
+    read -r choice
+    
+    case $choice in
+        1)
+            install_vultr_cli
+            ;;
+        2)
+            configure_api
+            ;;
+        3)
+            echo "Configuring Instance/Storage..."
+            ;;
+        4)
+            echo "Performing all steps..."
+            install_vultr_cli
+            configure_api
+            ;;
+        5)
+            echo "Exiting..."
+            exit 0
+            ;;
+        *)
+            echo -e "${RED}Invalid option${NC}"
+            ;;
+    esac
+done 

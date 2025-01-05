@@ -29,6 +29,12 @@ You can configure Vultr either during initial setup or later using the dedicated
 ## 2. Initial Access
 1. **Get Server Details**:
    - Note IPv4/IPv6 addresses
+   ```bash
+   # Get server IP address (any of these methods)
+   hostname -I
+   ip addr show
+   curl ifconfig.me
+   ```
    - Note Instance ID (UUID from URL: .../instance/id=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
 
 2. **SSH Access**:
