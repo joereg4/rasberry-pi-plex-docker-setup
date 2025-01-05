@@ -40,3 +40,25 @@
 - VULTR_BLOCK_ID
 
 All stored in .env file 
+
+## Testing
+### Local Testing
+```bash
+# Test Vultr CLI installation
+vultr-cli version
+
+# Test API key
+vultr-cli account info
+
+# Test instance access
+vultr-cli instance list
+
+# Test block storage
+vultr-cli block-storage list
+```
+
+### Common Issues
+- API key permissions not set correctly
+- Go installation path not in PATH
+- Vultr CLI not found in PATH
+- Block storage not in same region as instance 

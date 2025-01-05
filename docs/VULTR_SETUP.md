@@ -136,3 +136,23 @@ The configuration script provides these options:
    ```
 
 Each script can be run independently, but they should be run in this order. 
+
+## Configuration
+
+## Testing
+To test Vultr configuration:
+```bash
+# 1. Start test environment
+./manage_test.sh rebuild
+
+# 2. Inside container
+cd /plex-docker-setup
+./scripts/configure_vultr.sh
+
+# 3. Verify configuration
+vultr-cli account info
+vultr-cli instance list
+vultr-cli block-storage list
+```
+
+## Troubleshooting 

@@ -10,30 +10,32 @@ setup_env_file
 
 # Function to install Go and Vultr CLI
 install_vultr_cli() {
-    echo -e "\n${YELLOW}Installing Go...${NC}"
-    wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz
-    tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
-    rm go1.20.14.linux-amd64.tar.gz
+    echo -e "${YELLOW}Installing Go and Vultr CLI...${NC}"
     
-    # Set Go environment
-    export PATH=$PATH:/usr/local/go/bin
-    export GOPATH=$HOME/go
-    export PATH=$PATH:$GOPATH/bin
-    export GO111MODULE=on
+    # Check if Go is already installed
+    if ! command -v go &> /dev/null; then
+        wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz
+        rm -rf /usr/local/go && tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
+        export PATH=$PATH:/usr/local/go/bin
+        rm go1.20.14.linux-amd64.tar.gz
+    fi
     
-    # Setup Go workspace
-    mkdir -p ~/go/{bin,pkg,src}
+    # Setup Go workspace if needed
+    if [ ! -d "$HOME/go" ]; then
+        mkdir -p ~/go/{bin,pkg,src}
+        export GOPATH=$HOME/go
+        export PATH=$PATH:$GOPATH/bin
+        export GO111MODULE=on
+    fi
     
-    echo -e "\n${YELLOW}Installing Vultr CLI...${NC}"
-    go install github.com/vultr/vultr-cli/v3@v3.3.0
+    # Install Vultr CLI if needed
+    if ! command -v vultr-cli &> /dev/null; then
+        go install github.com/vultr/vultr-cli/v3@v3.3.0
+    fi
     
     # Verify installation
-    if vultr-cli version; then
-        echo -e "${GREEN}✓ Vultr CLI installed successfully${NC}"
-    else
-        echo -e "${RED}Failed to install Vultr CLI${NC}"
-        exit 1
-    fi
+    echo -e "${YELLOW}Verifying Vultr CLI installation...${NC}"
+    vultr-cli version
 }
 
 # Function to configure API

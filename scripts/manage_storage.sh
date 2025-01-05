@@ -12,7 +12,23 @@ CRITICAL_THRESHOLD=90
 BLOCK_INCREMENT=100  # GB
 
 # Vultr API configuration
-source /opt/plex-docker-setup/.env
+# Debug: Show current directory and .env location
+echo "Current directory: $(pwd)"
+echo "Looking for .env in: $(pwd)/.env"
+
+# Load environment variables
+if [ -f ".env" ]; then
+    set -a
+    . ".env"
+    set +a
+elif [ -f "../.env" ]; then
+    set -a
+    . "../.env"
+    set +a
+else
+    echo -e "${RED}Error: .env file not found${NC}"
+    exit 1
+fi
 
 if [ -z "$VULTR_API_KEY" ] || [ -z "$VULTR_BLOCK_ID" ]; then
     echo -e "${RED}Vultr API configuration missing in .env${NC}"

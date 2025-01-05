@@ -1,94 +1,120 @@
-# Testing Environment Guide
+# Testing Guide
 
 ## Quick Start
-
 ```bash
-# In your Plex directory
-cd ~/Plex
+# 1. Clean and start container
+./manage_test.sh rebuild
 
-# Create test management script
-./manage_test.sh setup
+# 2. Inside container, start services
+service postfix start
+service cron start
 
-# Enter test container
-docker exec -it plex-setup-test bash
+# 3. Run all tests
+cd /plex-docker-setup
+./scripts/run_tests.sh
 
-# Run setup script inside container
-./scripts/setup.sh
+# 4. Verify results
+service postfix status
+service cron status
+tail -f /var/log/mail.log
+crontab -l
+ls -l test_data/Media/Movies/
+
+# 5. Exit container
+exit
+
+# 6. Clean up (optional)
+./manage_test.sh clean
 ```
 
-## Test Management Commands
+## Expected Results
+- Email service running
+- Cron jobs configured
+- Test media files created
+- Storage monitoring active
+- Mail logs showing activity
 
+## Test Environment
+### Test Management Commands
 ```bash
-# Create fresh test environment
-./manage_test.sh setup
-
-# Clean up test environment
+# Clean test environment
 ./manage_test.sh clean
 
-# Update test files from main project
-./manage_test.sh update
+# Start test container
+./manage_test.sh start
 
-# Restart test environment (clean + setup)
-./manage_test.sh restart
+# Clean and start fresh
+./manage_test.sh rebuild
 ```
 
-## Test Environment Structure
+### Inside Test Container
+Once the container is running:
+```bash
+# Run all tests
+cd /plex-docker-setup
+./scripts/run_tests.sh
 
+# Or run individual components:
+./scripts/setup_email.sh    # Test email
+./scripts/setup_cron.sh     # Test cron jobs
+./scripts/manage_storage.sh check  # Test storage
 ```
-plex-test/
-├── Dockerfile          # Ubuntu test container
-├── docker-compose.test.yml
-├── scripts/           # Copied from main project
-├── docs/             # Documentation
-└── .env.example      # Environment template
+
+## Test Data
+- Sample media files in `test_data/Media/Movies`
+- Created automatically during tests
+- Cleaned up with `./manage_test.sh clean`
+
+## Test Scenarios
+
+### 1. Email System
+```bash
+# Set up email
+./scripts/setup_email.sh
 ```
 
-## Testing Different Scenarios
+### 2. Storage Monitoring
+```bash
+# Set up cron
+./scripts/setup_cron.sh
+```
 
-1. **Fresh Installation**:
-   ```bash
-   ./manage_test.sh restart
-   docker exec -it plex-setup-test bash
-   ./scripts/setup.sh
-   ```
+### 3. Cleanup System
+```bash
+# Test cleanup
+./scripts/cleanup.sh
+```
 
-2. **Configuration Updates**:
-   ```bash
-   ./manage_test.sh update
-   docker exec -it plex-setup-test bash
-   ```
+### 4. Email Notifications
+```bash
+# Watch mail log
+tail -f /var/log/mail.log
+```
 
-3. **Storage Management**:
-   ```bash
-   # Inside container
-   ./scripts/manage_storage.sh check
-   ./scripts/optimize_media.sh
-   ```
+## Verification Steps
+### Service Status
+```bash
+# Check postfix
+service postfix status
 
-## Best Practices
+# Check cron
+service cron status
+```
 
-1. Always test in container before deploying
-2. Use `manage_test.sh update` after local changes
-3. Test all configuration options
-4. Verify script permissions after updates
+### Log Files
+```bash
+# Check mail log
+tail -n 20 /var/log/mail.log
+
+# Check cron jobs
+crontab -l
+
+# Check storage status
+df -h
+```
 
 ## Troubleshooting
-
-1. **Permission Issues**:
-   ```bash
-   chmod +x scripts/*.sh
-   ```
-
-2. **Container Access**:
-   ```bash
-   # Check container status
-   docker ps
-   
-   # Restart if needed
-   docker-compose -f docker-compose.test.yml restart
-   ```
-
-3. **Clean Start**:
-   ```bash
-   ./manage_test.sh restart
-   ``` 
+- If services fail to start, use `service <service> start`
+- Check `/var/log/mail.log` for email issues
+- Verify `.env` file exists and has correct permissions
+- Use `docker logs` to check container issues 

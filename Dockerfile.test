@@ -1,46 +1,37 @@
 FROM ubuntu:22.04
 
-# Install basic tools
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    curl \
-    wget \
-    git
+# Avoid prompts
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install Go
-RUN wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz && \
-    rm go1.20.14.linux-amd64.tar.gz
-
-# Set Go environment
+# Set Go environment variables
 ENV PATH=$PATH:/usr/local/go/bin
 ENV GOPATH=/root/go
 ENV PATH=$PATH:$GOPATH/bin
 ENV GO111MODULE=on
 
-# Setup Go workspace
-RUN mkdir -p ~/go/{bin,pkg,src}
+# Install basic requirements
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    cron \
+    mailutils \
+    postfix \
+    docker.io \
+    docker-compose \
+    ffmpeg \
+    e2fsprogs \
+    bc
 
-# Install Vultr CLI
-RUN go install github.com/vultr/vultr-cli/v3@v3.3.0
+# Create log directory
+RUN mkdir -p /var/log && \
+    touch /var/log/mail.log
 
-# Create plex-docker-setup directory
-RUN mkdir -p /root/plex-docker-setup
+# Set up test environment
+WORKDIR /plex-docker-setup
 
-# Create empty .env file
-RUN touch /root/plex-docker-setup/.env
+# Copy test files
+COPY . .
 
-# Create test script
-RUN echo '#!/bin/bash' > /root/test.sh && \
-    echo 'cd /root/plex-docker-setup' >> /root/test.sh && \
-    echo 'echo "Enter your Vultr API key:"' >> /root/test.sh && \
-    echo 'read API_KEY' >> /root/test.sh && \
-    echo 'echo "VULTR_API_KEY=$API_KEY" >> .env' >> /root/test.sh && \
-    echo 'export VULTR_API_KEY=$API_KEY' >> /root/test.sh && \
-    echo 'echo "Testing Vultr CLI..."' >> /root/test.sh && \
-    echo 'vultr-cli account info' >> /root/test.sh && \
-    chmod +x /root/test.sh
-
-WORKDIR /root/plex-docker-setup
-
-CMD ["/root/test.sh"] 
+# Make scripts executable
+RUN chmod +x scripts/*.sh
