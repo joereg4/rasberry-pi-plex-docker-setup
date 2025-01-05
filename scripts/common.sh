@@ -23,3 +23,29 @@ setup_env_file() {
         echo -e "${GREEN}✓ Created .env file${NC}"
     fi
 } 
+
+# Function to export all variables from .env file
+export_env_vars() {
+    if [ -f ".env" ]; then
+        echo -e "${YELLOW}Exporting environment variables...${NC}"
+        
+        # Read each line from .env
+        while IFS= read -r line || [ -n "$line" ]; do
+            # Skip comments and empty lines
+            if [[ $line =~ ^[^#].+=.+ ]]; then
+                # Extract variable name and value
+                var_name=$(echo "$line" | cut -d '=' -f 1)
+                var_value=$(echo "$line" | cut -d '=' -f 2-)
+                
+                # Export the variable
+                export "$var_name"="$var_value"
+                echo -e "${GREEN}✓ Exported${NC} $var_name"
+            fi
+        done < ".env"
+        
+        echo -e "${GREEN}Environment variables exported successfully${NC}"
+    else
+        echo -e "${RED}Error: .env file not found${NC}"
+        return 1
+    fi
+} 
