@@ -1,5 +1,8 @@
 #!/bin/bash
-source "$(dirname "$0")/common.sh"
+
+# Source common functions using absolute path
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../common/common.sh"
 
 setup_env_file
 export_env_vars

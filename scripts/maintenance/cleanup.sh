@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Source common functions
-source "$(dirname "$0")/common.sh"
+# Source common functions using absolute path
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../common/common.sh"
 
 echo "=== Plex Cleanup ==="
 
@@ -20,12 +21,4 @@ docker exec plex rm -rf "/config/Library/Application Support/Plex Media Server/C
 echo -e "${YELLOW}Cleaning Docker resources...${NC}"
 docker system prune -f
 
-echo -e "${GREEN}✓ Cleanup complete${NC}"
-
-# Send notification if email is configured
-if [ -f ".env" ] && grep -q "SMTP_USER" .env && grep -q "SMTP_PASS" .env; then
-    notify_email=$(grep "NOTIFY_EMAIL" .env | cut -d '=' -f2)
-    if [ ! -z "$notify_email" ]; then
-        echo "Cleanup completed at $(date)" | mail -s "Plex Cleanup Complete" "$notify_email"
-    fi
-fi 
+echo -e "${GREEN}✓ Cleanup complete${NC}" 
