@@ -38,4 +38,3 @@ temp/
 # Script outputs
 scripts/*.log
 scripts/reports/
-scripts/**/*.sh -diff

@@ -1,0 +1,2 @@
+# Ignore permission changes on scripts
+scripts/**/*.sh -diff 

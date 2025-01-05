@@ -261,10 +261,10 @@ EOF
 # Make hook executable
 chmod +x .git/hooks/post-merge
 
-# Add gitignore entry if it doesn't exist
-if ! grep -q "scripts/\*\*/\*.sh -diff" .gitignore 2>/dev/null; then
-    echo -e "\n# Ignore permission changes on scripts\nscripts/**/*.sh -diff" >> .gitignore
-    echo -e "${GREEN}✓ Added script permissions to .gitignore${NC}"
+# Create .gitattributes if it doesn't exist
+if [ ! -f ".gitattributes" ]; then
+    echo -e "# Ignore permission changes on scripts\nscripts/**/*.sh -diff" > .gitattributes
+    echo -e "${GREEN}✓ Created .gitattributes${NC}"
 fi
 
 echo -e "${GREEN}✓ Git hooks and permissions configured${NC}" 
