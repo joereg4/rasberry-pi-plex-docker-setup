@@ -1,6 +1,7 @@
 #!/bin/bash
-# Source common functions
-source "$(dirname "$0")/../common/common.sh"
+# Source common functions using absolute path
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../common/common.sh"
 
 # Colors
 export RED='\033[0;31m'

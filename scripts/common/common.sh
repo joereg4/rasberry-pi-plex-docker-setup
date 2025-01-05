@@ -12,7 +12,7 @@ setup_env_file() {
     if [ ! -f "docker-compose.yml" ]; then
         echo -e "${RED}Error: Must be run from plex-docker-setup directory${NC}"
         exit 1
-    }
+    fi
     
     # Create .env from example if it doesn't exist
     if [ ! -f ".env" ] && [ -f ".env.example" ]; then
