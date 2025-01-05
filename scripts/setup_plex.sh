@@ -1,11 +1,18 @@
 #!/bin/bash
+# Source common functions
+source "$(dirname "$0")/common.sh"
+
 # Colors
 export RED='\033[0;31m'
 export GREEN='\033[0;32m'
 export YELLOW='\033[1;33m'
 export NC='\033[0m'
 
+# Start setup
 echo "=== Plex Setup ==="
+
+# Ensure .env is ready
+setup_env_file
 
 # Pre-configure all system settings to avoid prompts
 echo "libc6 libraries/restart-without-asking boolean true" | debconf-set-selections

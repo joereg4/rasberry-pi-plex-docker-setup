@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+# Source common functions
+source "$(dirname "$0")/common.sh"
 
 # Default media directory
 MEDIA_DIR="/opt/plex/media"
 
 echo "=== Media Optimization Analysis ==="
+
+# Ensure .env is ready
+setup_env_file
 
 # Function to convert size to GB
 to_gb() {

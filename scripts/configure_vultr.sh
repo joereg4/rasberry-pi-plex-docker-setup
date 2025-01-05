@@ -1,10 +1,12 @@
 #!/bin/bash
 
-# Colors for output
-export RED='\033[0;31m'
-export GREEN='\033[0;32m'
-export YELLOW='\033[1;33m'
-export NC='\033[0m'
+# Source common functions
+source "$(dirname "$0")/common.sh"
+
+echo "=== Vultr Configuration ==="
+
+# Ensure .env is ready
+setup_env_file
 
 # Function to install Go and Vultr CLI
 install_vultr_cli() {
