@@ -124,10 +124,19 @@ If any script fails:
    ./scripts/setup_email.sh
    ```
 
-3. Finally, configure Vultr:
+3. Configure Vultr:
    ```bash
    ./scripts/configure_vultr.sh
    ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
 
 ### Vultr Configuration
 - Choose option 4 for guided setup
