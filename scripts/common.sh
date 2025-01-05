@@ -6,24 +6,20 @@ export GREEN='\033[0;32m'
 export YELLOW='\033[1;33m'
 export NC='\033[0m'
 
-# Function to ensure .env exists with correct permissions
+# Function to setup .env file
 setup_env_file() {
-    # Create .env if it doesn't exist
-    if [ ! -f .env ]; then
-        echo -e "${YELLOW}Creating .env file...${NC}"
-        touch .env
-    fi
-    
-    # Fix permissions
-    current_perms=$(stat -c %a .env)
-    if [ "$current_perms" != "600" ]; then
-        echo -e "${YELLOW}Fixing .env permissions...${NC}"
-        chmod 600 .env
-    fi
-    
-    # Verify
-    if [ ! -w .env ]; then
-        echo -e "${RED}Cannot write to .env file${NC}"
+    # Verify we're in the correct directory
+    if [ ! -f "docker-compose.yml" ]; then
+        echo -e "${RED}Error: Must be run from plex-docker-setup directory${NC}"
         exit 1
+    }
+    
+    # Create .env from example if it doesn't exist
+    if [ ! -f ".env" ] && [ -f ".env.example" ]; then
+        echo -e "${YELLOW}Creating .env from example...${NC}"
+        cp .env.example .env
+        # Set secure permissions for sensitive data
+        chmod 600 .env
+        echo -e "${GREEN}✓ Created .env file${NC}"
     fi
 } 

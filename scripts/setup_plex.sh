@@ -14,6 +14,12 @@ echo "=== Plex Setup ==="
 # Ensure .env is ready
 setup_env_file
 
+# Verify .env exists
+if [ ! -f ".env" ]; then
+    echo -e "${RED}Error: .env file not found in plex-docker-setup directory${NC}"
+    exit 1
+fi
+
 # Pre-configure all system settings to avoid prompts
 echo "libc6 libraries/restart-without-asking boolean true" | debconf-set-selections
 echo "linux-base want-reboot-on-upgrade boolean false" | debconf-set-selections
@@ -64,16 +70,13 @@ if ! command -v docker &> /dev/null; then
     echo -e "${GREEN}✓ Docker installed successfully${NC}"
 fi
 
-# Check/create .env
-if [ ! -f ".env" ]; then
-    cp .env.example .env
-fi
-
 # Get claim token
 echo "Please get your claim token from https://plex.tv/claim"
 echo "Enter your Plex claim token:"
 read -r plex_claim
 sed -i "s/PLEX_CLAIM=.*/PLEX_CLAIM=$plex_claim/" .env
+# Export for immediate use
+export PLEX_CLAIM="$plex_claim"
 
 # Configure PLEX_HOST
 echo -e "\n${YELLOW}Configure Plex Host${NC}"
@@ -145,6 +148,8 @@ esac
 
 # Update PLEX_HOST in .env
 sed -i "s/PLEX_HOST=.*/PLEX_HOST=$plex_host/" .env
+# Export for immediate use
+export PLEX_HOST="$plex_host"
 echo -e "${GREEN}✓ Plex host set to: $plex_host${NC}"
 
 # Configure timezone
@@ -168,6 +173,14 @@ case $tz_choice in
 esac
 
 sed -i "s|TZ=.*|TZ=$timezone|" .env
+# Export for immediate use
+export TZ="$timezone"
+
+# Verify exports
+echo -e "\n${YELLOW}Verifying environment variables:${NC}"
+echo "PLEX_CLAIM=$PLEX_CLAIM"
+echo "PLEX_HOST=$PLEX_HOST"
+echo "TZ=$TZ"
 
 # Create directories
 echo -e "\n${YELLOW}Creating Plex directories...${NC}"
@@ -216,4 +229,9 @@ echo "- /opt/plex/media/Music"
 echo "- /opt/plex/media/Photos"
 echo "- /opt/plex/media/Home Videos"
 echo -e "${YELLOW}Note: Plex uses case-sensitive folder names${NC}"
-echo -e "${YELLOW}These folders are ready for you to add media${NC}" 
+echo -e "${YELLOW}These folders are ready for you to add media${NC}"
+
+# Setup weekly cleanup
+echo -e "\n${YELLOW}Setting up weekly cleanup...${NC}"
+(crontab -l 2>/dev/null; echo "0 3 * * 0 $(pwd)/scripts/cleanup.sh") | crontab -
+echo -e "${GREEN}✓ Weekly cleanup scheduled${NC}" 
