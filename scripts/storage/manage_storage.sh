@@ -11,12 +11,16 @@ ALERT_THRESHOLD=75  # Percentage
 CRITICAL_THRESHOLD=90
 BLOCK_INCREMENT=100  # GB
 
-# Vultr API configuration
 # Debug: Show current directory and .env location
 echo "Current directory: $(pwd)"
-echo "Looking for .env in: $(pwd)/.env"
 
 # Load environment variables
+if [ ! -f ".env" ] && [ ! -f "../.env" ]; then
+    echo -e "${RED}Error: .env file not found in current or parent directory${NC}"
+    exit 1
+fi
+
+# Try to load .env from current or parent directory
 if [ -f ".env" ]; then
     set -a
     . ".env"
@@ -25,14 +29,17 @@ elif [ -f "../.env" ]; then
     set -a
     . "../.env"
     set +a
-else
-    echo -e "${RED}Error: .env file not found${NC}"
+fi
+
+# Verify required environment variables
+if [ -z "$VULTR_API_KEY" ]; then
+    echo -e "${RED}Error: VULTR_API_KEY not found in .env${NC}"
     exit 1
 fi
 
-if [ -z "$VULTR_API_KEY" ] || [ -z "$VULTR_BLOCK_ID" ]; then
-    echo -e "${RED}Vultr API configuration missing in .env${NC}"
-    exit 1
+if [ -z "$VULTR_BLOCK_ID" ]; then
+    echo -e "${YELLOW}Warning: VULTR_BLOCK_ID not found in .env${NC}"
+    echo -e "${YELLOW}Block storage monitoring will be disabled${NC}"
 fi
 
 # Function to get current usage percentage
@@ -46,12 +53,27 @@ get_block_size() {
     lsblk -b /dev/vdb | awk 'NR==2 {print $4/1024/1024/1024}'  # Convert to GB
 }
 
-# Function to check if block storage exists
+# Function to check if block storage exists and is mounted
 check_block_storage() {
     if [ ! -b "/dev/vdb" ]; then
-        echo -e "${RED}No block storage device found${NC}"
+        echo -e "${RED}Error: Block storage device (/dev/vdb) not found${NC}"
+        echo -e "${YELLOW}Possible issues:${NC}"
+        echo "1. Block storage not attached in Vultr dashboard"
+        echo "2. Block storage not properly configured"
+        echo -e "Run ${GREEN}setup_monitoring.sh${NC} to configure block storage"
         return 1
     fi
+
+    if ! mountpoint -q "/mnt/blockstore"; then
+        echo -e "${RED}Error: Block storage not mounted at /mnt/blockstore${NC}"
+        echo -e "${YELLOW}To fix:${NC}"
+        echo "1. Create mount point: mkdir -p /mnt/blockstore"
+        echo "2. Mount device: mount /dev/vdb /mnt/blockstore"
+        echo "3. Add to fstab for persistence"
+        echo -e "Or run ${GREEN}setup_monitoring.sh${NC} to configure automatically"
+        return 1
+    fi
+
     return 0
 }
 
