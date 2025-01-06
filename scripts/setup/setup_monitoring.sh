@@ -100,8 +100,12 @@ setup_vultr() {
         if vultr-cli account info; then
             echo -e "${GREEN}✓ Vultr API key configured${NC}"
             
-            # Show instances and get ID
-            vultr-cli instance list
+            # Show instances with filtered output
+            echo -e "\n${YELLOW}Available Instances:${NC}"
+            vultr-cli instance list | awk '
+                NR==1 {print "LABEL                   IP                      ID"}
+                NR>1 && NR<5 {printf "%-22s %-22s %s\n", $3, $2, $1}'
+            
             echo "Enter your Instance ID from above:"
             read -r instance_id
             sed -i "s/VULTR_INSTANCE_ID=.*/VULTR_INSTANCE_ID=$instance_id/" .env
@@ -112,7 +116,10 @@ setup_vultr() {
             read -r use_block
             
             if [[ $use_block =~ ^[Yy]$ ]]; then
-                vultr-cli block-storage list
+                echo -e "\n${YELLOW}Available Block Storage:${NC}"
+                vultr-cli block-storage list | awk '
+                    NR==1 {print "LABEL                   SIZE GB    ID"}
+                    NR>1 && NR<5 {printf "%-22s %-9s %s\n", $5, $4, $1}'
                 echo "Enter your Block Storage ID from above:"
                 read -r block_id
                 sed -i "s/VULTR_BLOCK_ID=.*/VULTR_BLOCK_ID=$block_id/" .env
@@ -130,7 +137,7 @@ setup_monitoring() {
     echo -e "\n${YELLOW}Setting up monitoring jobs${NC}"
     
     # Add storage monitoring (every 5 minutes)
-    (crontab -l 2>/dev/null; echo "*/5 * * * * $(pwd)/scripts/manage_storage.sh check") | crontab -
+    (crontab -l 2>/dev/null; echo "*/5 * * * * $(pwd)/scripts/storagemanage_storage.sh check") | crontab -
     
     echo -e "${GREEN}✓ Monitoring jobs configured${NC}"
     echo "Storage check: Every 5 minutes"
