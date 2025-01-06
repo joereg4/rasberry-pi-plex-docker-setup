@@ -44,13 +44,13 @@ setup_email() {
     
     # Update .env
     sed -i "s/SMTP_USER=.*/SMTP_USER=$smtp_user/" .env
-    sed -i "s/SMTP_PASS=.*/SMTP_PASS=$email_pass/" .env
+    sed -i "s/SMTP_PASS=.*/SMTP_PASS=\"$email_pass\"/" .env
     sed -i "s/NOTIFY_EMAIL=.*/NOTIFY_EMAIL=$notify_email/" .env
     
     # Export for immediate use
-    export SMTP_USER="$smtp_user"
+    export SMTP_USER=$smtp_user
     export SMTP_PASS="$email_pass"
-    export NOTIFY_EMAIL="$notify_email"
+    export NOTIFY_EMAIL=$notify_email
     
     # Configure Postfix
     echo "[smtp.gmail.com]:587 $smtp_user:$email_pass" > /etc/postfix/sasl_passwd
