@@ -43,12 +43,12 @@ get_usage() {
 
 # Function to get block device size
 get_block_size() {
-    lsblk -b /dev/sdb | awk 'NR==2 {print $4/1024/1024/1024}'  # Convert to GB
+    lsblk -b /dev/vdb | awk 'NR==2 {print $4/1024/1024/1024}'  # Convert to GB
 }
 
 # Function to check if block storage exists
 check_block_storage() {
-    if [ ! -b "/dev/sdb" ]; then
+    if [ ! -b "/dev/vdb" ]; then
         echo -e "${RED}No block storage device found${NC}"
         return 1
     fi

@@ -124,6 +124,30 @@ setup_vultr() {
                 read -r block_id
                 sed -i "s/VULTR_BLOCK_ID=.*/VULTR_BLOCK_ID=$block_id/" .env
                 export VULTR_BLOCK_ID="$block_id"
+
+                # Add Go and vultr-cli to PATH
+                echo 'export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin' >> ~/.bashrc
+                export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
+
+                # Setup block storage
+                echo -e "\n${YELLOW}Setting up block storage...${NC}"
+                mkdir -p /mnt/blockstore
+                
+                # Check if device needs formatting
+                if ! blkid /dev/vdb >/dev/null 2>&1; then
+                    echo -e "${YELLOW}Formatting block storage...${NC}"
+                    mkfs.ext4 /dev/vdb
+                fi
+
+                # Mount the device
+                mount /dev/vdb /mnt/blockstore
+                echo -e "${GREEN}✓ Block storage mounted${NC}"
+
+                # Add to fstab for persistent mount
+                if ! grep -q "/dev/vdb" /etc/fstab; then
+                    echo "/dev/vdb /mnt/blockstore ext4 defaults 0 0" >> /etc/fstab
+                    echo -e "${GREEN}✓ Added to fstab for persistent mount${NC}"
+                fi
             fi
         else
             echo -e "${RED}× Error: Could not connect to Vultr API${NC}"
@@ -136,8 +160,17 @@ setup_vultr() {
 setup_monitoring() {
     echo -e "\n${YELLOW}Setting up monitoring jobs${NC}"
     
-    # Add storage monitoring (every 5 minutes)
-    (crontab -l 2>/dev/null; echo "*/5 * * * * $(pwd)/scripts/storage/manage_storage.sh check") | crontab -
+    # Get current crontab
+    current_crontab=$(crontab -l 2>/dev/null)
+    
+    # Check if storage monitoring is already configured
+    if ! echo "$current_crontab" | grep -q "manage_storage.sh check"; then
+        # Add storage monitoring (every 5 minutes)
+        (echo "$current_crontab"; echo "*/5 * * * * $(pwd)/scripts/storage/manage_storage.sh check") | crontab -
+        echo -e "${GREEN}✓ Storage monitoring added${NC}"
+    else
+        echo -e "${YELLOW}Storage monitoring already configured${NC}"
+    fi
     
     echo -e "${GREEN}✓ Monitoring jobs configured${NC}"
     echo "Storage check: Every 5 minutes"
