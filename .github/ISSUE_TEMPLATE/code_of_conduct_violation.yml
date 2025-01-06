@@ -1,0 +1,32 @@
+name: Code of Conduct Violation
+description: Report a Code of Conduct violation privately
+title: "[PRIVATE] Code of Conduct Violation"
+labels: ["CoC violation", "private"]
+assignees:
+  - joereg4
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This form is for reporting Code of Conduct violations privately to project maintainers.
+        Your report will be handled confidentially.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please describe the incident
+      placeholder: What happened?
+    validations:
+      required: true
+  - type: input
+    id: date
+    attributes:
+      label: When did this occur?
+      description: Please provide the date/time of the incident
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information
+      description: Any other context or information that might be helpful 
