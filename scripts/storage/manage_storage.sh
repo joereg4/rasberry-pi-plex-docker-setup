@@ -7,9 +7,10 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 # Configuration
-ALERT_THRESHOLD=75  # Percentage
-CRITICAL_THRESHOLD=90
-BLOCK_INCREMENT=100  # GB
+ALERT_THRESHOLD=75      # Percentage - Warning email
+CRITICAL_THRESHOLD=90   # Percentage - Auto expand
+BLOCK_INCREMENT=50      # GB - Smaller increments
+
 
 # Debug: Show current directory and .env location
 echo "Current directory: $(pwd)"
@@ -130,9 +131,16 @@ case "$1" in
     "auto")
         if check_block_storage; then
             usage=$(get_usage "/mnt/blockstore")
-            if [ $usage -gt $ALERT_THRESHOLD ]; then
-                echo -e "${YELLOW}Usage above threshold, expanding storage...${NC}"
+            
+            if [ $usage -gt $CRITICAL_THRESHOLD ]; then
+                echo -e "${RED}Usage critical (${usage}%), expanding storage...${NC}"
                 expand_storage
+                # Send email notification about expansion
+                echo "Block storage was automatically expanded due to reaching ${usage}% usage." | mail -s "Storage Expanded - Plex Server" "$NOTIFY_EMAIL"
+            elif [ $usage -gt $ALERT_THRESHOLD ]; then
+                echo -e "${YELLOW}WARNING: Usage at ${usage}%${NC}"
+                # Send warning email
+                echo "Block storage usage is at ${usage}%. It will be automatically expanded if it exceeds ${CRITICAL_THRESHOLD}%." | mail -s "Storage Warning - Plex Server" "$NOTIFY_EMAIL"
             else
                 echo -e "${GREEN}Storage usage normal (${usage}%)${NC}"
             fi

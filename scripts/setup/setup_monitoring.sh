@@ -164,16 +164,22 @@ setup_monitoring() {
     current_crontab=$(crontab -l 2>/dev/null)
     
     # Check if storage monitoring is already configured
-    if ! echo "$current_crontab" | grep -q "manage_storage.sh check"; then
-        # Add storage monitoring (every 5 minutes)
-        (echo "$current_crontab"; echo "*/5 * * * * $(pwd)/scripts/storage/manage_storage.sh check") | crontab -
+    if ! echo "$current_crontab" | grep -q "manage_storage.sh auto"; then
+        # Add storage management (every 5 minutes)
+        (echo "$current_crontab"; echo "*/5 * * * * $(pwd)/scripts/storage/manage_storage.sh auto") | crontab -
+        echo -e "${GREEN}✓ Storage management added${NC}"
+    fi
+    
+    # Add storage monitoring with email alerts if not exists
+    if ! echo "$current_crontab" | grep -q "monitor_storage.sh"; then
+        # Add storage monitoring (hourly)
+        (crontab -l 2>/dev/null; echo "0 * * * * $(pwd)/scripts/storage/monitor_storage.sh") | crontab -
         echo -e "${GREEN}✓ Storage monitoring added${NC}"
-    else
-        echo -e "${YELLOW}Storage monitoring already configured${NC}"
     fi
     
     echo -e "${GREEN}✓ Monitoring jobs configured${NC}"
-    echo "Storage check: Every 5 minutes"
+    echo "Storage management: Every 5 minutes"
+    echo "Storage monitoring: Hourly"
 }
 
 # Main setup
