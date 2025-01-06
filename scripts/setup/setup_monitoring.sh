@@ -137,7 +137,7 @@ setup_monitoring() {
     echo -e "\n${YELLOW}Setting up monitoring jobs${NC}"
     
     # Add storage monitoring (every 5 minutes)
-    (crontab -l 2>/dev/null; echo "*/5 * * * * $(pwd)/scripts/storagemanage_storage.sh check") | crontab -
+    (crontab -l 2>/dev/null; echo "*/5 * * * * $(pwd)/scripts/storage/manage_storage.sh check") | crontab -
     
     echo -e "${GREEN}✓ Monitoring jobs configured${NC}"
     echo "Storage check: Every 5 minutes"
