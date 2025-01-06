@@ -71,23 +71,32 @@ If using a custom domain:
    - Sign in with same account
    - Auto-discovers server
 
-### 2. Email Setup (Optional)
+### 2. Monitoring Setup (Required for automation)
 ```bash
-./scripts/setup_email.sh
+./scripts/setup/setup_monitoring.sh
 ```
 You'll need:
-- Gmail account
-- Gmail app password
-- Notification email address
+- Gmail account & app password (create at https://myaccount.google.com/apppasswords)
+- Vultr API key (from https://my.vultr.com/settings/#settingsapi)
 
-### 3. Vultr Setup (Optional)
-```bash
-./scripts/configure_vultr.sh
-```
-You'll need:
-- Vultr API key
-- Instance ID
-- Block Storage ID (if using)
+The script will:
+1. Configure email notifications:
+   - Sets up SMTP for Gmail
+   - Configures notification email
+   - Tests email delivery
+
+2. Setup Vultr CLI and storage:
+   - Installs and configures Vultr CLI
+   - Automatically retrieves available instances
+   - Shows available block storage volumes
+   - Guides you through selection
+
+3. Configure automated monitoring:
+   - Sets up storage monitoring (every 5 minutes)
+   - Configures email alerts
+   - Enables auto-expansion when needed
+
+Note: The script will automatically retrieve and display your available Vultr instances and block storage volumes for selection.
 
 ## Verification
 After each step:
