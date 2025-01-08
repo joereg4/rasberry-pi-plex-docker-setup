@@ -163,12 +163,9 @@ setup_monitoring() {
     # Install monitoring tools
     echo -e "${YELLOW}Installing monitoring packages...${NC}"
     apt-get update
-    apt-get install -y smartmontools sysstat
+    apt-get install -y sysstat
     
     # Verify installations
-    if ! command -v smartctl &> /dev/null; then
-        echo -e "${RED}Warning: smartmontools installation failed${NC}"
-    fi
     if ! command -v iostat &> /dev/null; then
         echo -e "${RED}Warning: sysstat installation failed${NC}"
     fi

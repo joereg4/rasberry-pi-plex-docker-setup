@@ -30,9 +30,6 @@ else
     exit 1
 fi
 
-# Debug: Show email configuration
-echo -e "${YELLOW}Debug: Using email: $NOTIFY_EMAIL${NC}"
-
 echo "=== Plex Storage Monitor ==="
 
 # Function to check storage
@@ -71,19 +68,6 @@ check_storage "/opt/plex/media" "Local"
 # Show mount points
 echo -e "\n${GREEN}Storage Mount Points:${NC}"
 mount | grep -E "(/opt/plex|/mnt/blockstore)"
-
-# Check for potential issues
-echo -e "\n${GREEN}Storage Health Check:${NC}"
-if [ -b "/dev/vdb" ]; then
-    # Use -d sat for SATA devices in virtual environments
-    smartctl -H -d sat /dev/vdb || {
-        if ! command -v smartctl &> /dev/null; then
-            echo "smartctl not installed (apt install smartmontools)"
-        else
-            echo -e "${YELLOW}Unable to check device health${NC}"
-        fi
-    }
-fi
 
 # Show IO stats
 echo -e "\n${GREEN}IO Statistics:${NC}"
