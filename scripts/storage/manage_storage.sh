@@ -86,11 +86,16 @@ expand_storage() {
     echo -e "${YELLOW}Expanding block storage from ${current_size}GB to ${new_size}GB${NC}"
     
     # Call Vultr API
+    echo -e "\n${YELLOW}Calling Vultr API...${NC}"
     curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
          -H "Content-Type: application/json" \
          -X PATCH \
          -d "{\"size_gb\": ${new_size}}" \
+         --verbose \
          "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}" > /tmp/vultr_response
+    
+    echo -e "\n${YELLOW}API Response:${NC}"
+    cat /tmp/vultr_response
     
     if [ $? -eq 0 ]; then
         # Check API response
