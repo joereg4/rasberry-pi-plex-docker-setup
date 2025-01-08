@@ -98,9 +98,19 @@ expand_storage() {
         
         # Grow the filesystem
         echo "Growing filesystem..."
-        resize2fs /dev/sdb
+        if [ ! -b "/dev/vdb" ]; then
+            echo -e "${RED}Error: Block device /dev/vdb not found${NC}"
+            exit 1
+        fi
+        resize2fs /dev/vdb
         
-        echo -e "${GREEN}Storage expansion complete${NC}"
+        # Verify expansion
+        new_actual_size=$(get_block_size)
+        if [ "$new_actual_size" -ge "$new_size" ]; then
+            echo -e "${GREEN}Storage expansion complete${NC}"
+        else
+            echo -e "${RED}Warning: New size ($new_actual_size GB) less than expected ($new_size GB)${NC}"
+        fi
     else
         echo -e "${RED}Failed to expand storage via Vultr API${NC}"
         exit 1
