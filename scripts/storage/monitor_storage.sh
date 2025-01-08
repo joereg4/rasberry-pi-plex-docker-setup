@@ -6,6 +6,20 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
+# Load environment variables
+if [ -f ".env" ]; then
+    set -a
+    . ".env"
+    set +a
+elif [ -f "../.env" ]; then
+    set -a
+    . "../.env"
+    set +a
+else
+    echo -e "${RED}Error: .env file not found${NC}"
+    exit 1
+fi
+
 echo "=== Plex Storage Monitor ==="
 
 # Function to check storage
