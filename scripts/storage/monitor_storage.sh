@@ -11,14 +11,27 @@ if [ -f ".env" ]; then
     set -a
     . ".env"
     set +a
+    # Verify email configuration
+    if [ -z "$NOTIFY_EMAIL" ]; then
+        echo -e "${RED}Error: NOTIFY_EMAIL not set in .env${NC}"
+        exit 1
+    fi
 elif [ -f "../.env" ]; then
     set -a
     . "../.env"
     set +a
+    # Verify email configuration
+    if [ -z "$NOTIFY_EMAIL" ]; then
+        echo -e "${RED}Error: NOTIFY_EMAIL not set in .env${NC}"
+        exit 1
+    fi
 else
     echo -e "${RED}Error: .env file not found${NC}"
     exit 1
 fi
+
+# Debug: Show email configuration
+echo -e "${YELLOW}Debug: Using email: $NOTIFY_EMAIL${NC}"
 
 echo "=== Plex Storage Monitor ==="
 
@@ -38,10 +51,10 @@ check_storage() {
             printf "Usage: %s of %s (%s available) - %s%%\n", used, total, avail, percent
             if (int(percent) > 90) {
                 printf "'$RED'WARNING: Storage critical (%s%%)!'$NC'\n", percent
-                system("echo \"Storage critical on $name: " percent "%% used\" | mail -s \"Plex Storage Alert\" $NOTIFY_EMAIL")
+                system("echo \"Storage critical on $name: " percent "%% used\" | mail -s \"Plex Storage Alert\" \"'$NOTIFY_EMAIL'\"")
             } else if (int(percent) > 75) {
                 printf "'$YELLOW'Notice: Storage getting high (%s%%)!'$NC'\n", percent
-                system("echo \"Storage high on $name: " percent "%% used\" | mail -s \"Plex Storage Warning\" $NOTIFY_EMAIL")
+                system("echo \"Storage high on $name: " percent "%% used\" | mail -s \"Plex Storage Warning\" \"'$NOTIFY_EMAIL'\"")
             }
         }'
         
