@@ -60,7 +60,12 @@ if [ "$1" = "to-block" ]; then
     
     # Update docker-compose.yml
     echo -e "${YELLOW}Updating docker configuration...${NC}"
-    sed -i 's|/opt/plex/media:/media|/mnt/blockstore/plex/media:/media|' docker-compose.yml
+    cat > docker-compose.override.yml << EOF
+services:
+  plex:
+    volumes:
+      - /mnt/blockstore/plex/media:/media
+EOF
     
     # Update symlink
     rm -f /opt/plex/media
