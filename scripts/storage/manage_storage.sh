@@ -111,9 +111,16 @@ expand_storage() {
         for i in {1..30}; do
             echo -n "."
             sleep 10
-            current_check=$(get_block_size)
-            if [ "$current_check" -ge "$new_size" ]; then
+            # Check Vultr API for current size
+            current_size=$(curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
+                "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}" | \
+                grep -o '"size_gb":[0-9]*' | cut -d: -f2)
+            echo -e "\nChecking size: ${current_size}GB"
+            
+            if [ "$current_size" -ge "$new_size" ]; then
                 echo -e "\n${GREEN}Block storage expanded successfully${NC}"
+                echo "Waiting for device to update..."
+                sleep 30  # Wait for device to catch up
                 break
             fi
         done
