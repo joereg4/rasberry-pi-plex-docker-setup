@@ -46,7 +46,7 @@ migrate_data() {
 
 # Main migration logic
 if [ "$1" = "to-block" ]; then
-    if [ ! -b "/dev/sdb" ]; then
+    if [ ! -b "/dev/vdb" ]; then
         echo -e "${RED}Error: Block storage not found${NC}"
         exit 1
     fi
