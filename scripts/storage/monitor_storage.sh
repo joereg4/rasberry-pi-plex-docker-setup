@@ -48,7 +48,7 @@ mount | grep -E "(/opt/plex|/mnt/blockstore)"
 # Check for potential issues
 echo -e "\n${GREEN}Storage Health Check:${NC}"
 if [ -b "/dev/vdb" ]; then
-    smartctl -H /dev/sdb || echo "smartctl not installed"
+    smartctl -H /dev/vdb || echo "smartctl not installed"
 fi
 
 # Show IO stats

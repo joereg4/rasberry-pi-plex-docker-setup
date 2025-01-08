@@ -160,6 +160,11 @@ setup_vultr() {
 setup_monitoring() {
     echo -e "\n${YELLOW}Setting up monitoring jobs${NC}"
     
+    # Install monitoring tools
+    echo -e "${YELLOW}Installing monitoring packages...${NC}"
+    apt-get update
+    apt-get install -y smartmontools sysstat
+    
     # Get current crontab
     current_crontab=$(crontab -l 2>/dev/null)
     
