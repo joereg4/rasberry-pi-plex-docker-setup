@@ -48,7 +48,14 @@ mount | grep -E "(/opt/plex|/mnt/blockstore)"
 # Check for potential issues
 echo -e "\n${GREEN}Storage Health Check:${NC}"
 if [ -b "/dev/vdb" ]; then
-    smartctl -H /dev/vdb || echo "smartctl not installed"
+    # Use -d sat for SATA devices in virtual environments
+    smartctl -H -d sat /dev/vdb || {
+        if ! command -v smartctl &> /dev/null; then
+            echo "smartctl not installed (apt install smartmontools)"
+        else
+            echo -e "${YELLOW}Unable to check device health${NC}"
+        fi
+    }
 fi
 
 # Show IO stats

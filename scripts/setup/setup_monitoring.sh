@@ -165,6 +165,14 @@ setup_monitoring() {
     apt-get update
     apt-get install -y smartmontools sysstat
     
+    # Verify installations
+    if ! command -v smartctl &> /dev/null; then
+        echo -e "${RED}Warning: smartmontools installation failed${NC}"
+    fi
+    if ! command -v iostat &> /dev/null; then
+        echo -e "${RED}Warning: sysstat installation failed${NC}"
+    fi
+    
     # Get current crontab
     current_crontab=$(crontab -l 2>/dev/null)
     
