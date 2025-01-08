@@ -58,9 +58,17 @@ if [ "$1" = "to-block" ]; then
     check_space "/opt/plex/media" "/mnt/blockstore"
     migrate_data "/opt/plex/media" "/mnt/blockstore/plex/media"
     
+    # Update docker-compose.yml
+    echo -e "${YELLOW}Updating docker configuration...${NC}"
+    sed -i 's|/opt/plex/media:/media|/mnt/blockstore/plex/media:/media|' docker-compose.yml
+    
     # Update symlink
     rm -f /opt/plex/media
     ln -s /mnt/blockstore/plex/media /opt/plex/media
+    
+    # Verify docker config
+    echo -e "${YELLOW}Verifying configuration...${NC}"
+    docker-compose config
 
 elif [ "$1" = "to-local" ]; then
     check_space "/mnt/blockstore/plex/media" "/opt/plex/media.new"
