@@ -29,6 +29,10 @@ migrate_data() {
     
     echo -e "${YELLOW}Starting migration from $source to $target${NC}"
     
+    # Create target directory structure
+    echo -e "${YELLOW}Creating directory structure...${NC}"
+    mkdir -p "$target"
+    
     # Stop Plex
     docker-compose down
     
