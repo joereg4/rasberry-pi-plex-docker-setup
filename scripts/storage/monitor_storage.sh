@@ -20,11 +20,14 @@ check_storage() {
             avail=$4
             total=$2
             percent=$5
-            printf "Usage: %s of %s (%s available)\n", used, total, avail
+            gsub(/%/,"",percent)  # Remove % symbol for comparison
+            printf "Usage: %s of %s (%s available) - %s%%\n", used, total, avail, percent
             if (int(percent) > 90) {
-                printf "'$RED'WARNING: Storage critical (%s)!'$NC'\n", percent
+                printf "'$RED'WARNING: Storage critical (%s%%)!'$NC'\n", percent
+                system("echo \"Storage critical on $name: " percent "%% used\" | mail -s \"Plex Storage Alert\" $NOTIFY_EMAIL")
             } else if (int(percent) > 75) {
-                printf "'$YELLOW'Notice: Storage getting high (%s)'$NC'\n", percent
+                printf "'$YELLOW'Notice: Storage getting high (%s%%)!'$NC'\n", percent
+                system("echo \"Storage high on $name: " percent "%% used\" | mail -s \"Plex Storage Warning\" $NOTIFY_EMAIL")
             }
         }'
         
@@ -36,18 +39,22 @@ check_storage() {
 
 # Check both storage types
 check_storage "/opt/plex/media" "Local"
-[ -d "/mnt/blockstore" ] && check_storage "/mnt/blockstore" "Block"
+[ -d "/mnt/blockstore/plex/media" ] && check_storage "/mnt/blockstore/plex/media" "Block"
 
 # Show mount points
 echo -e "\n${GREEN}Storage Mount Points:${NC}"
 mount | grep -E "(/opt/plex|/mnt/blockstore)"
 
 # Check for potential issues
-echo -e "\n${YELLOW}Storage Health Check:${NC}"
-if [ -b "/dev/sdb" ]; then
+echo -e "\n${GREEN}Storage Health Check:${NC}"
+if [ -b "/dev/vdb" ]; then
     smartctl -H /dev/sdb || echo "smartctl not installed"
 fi
 
 # Show IO stats
 echo -e "\n${GREEN}IO Statistics:${NC}"
-iostat -x 1 1 | grep -E "Device|sda|sdb" 
+if command -v iostat &> /dev/null; then
+    iostat -x 1 1 | grep -E "Device|vda|vdb"
+else
+    echo "iostat not installed (apt install sysstat for IO statistics)"
+fi 
