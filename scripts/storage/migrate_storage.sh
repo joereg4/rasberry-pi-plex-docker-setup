@@ -79,9 +79,16 @@ elif [ "$1" = "to-local" ]; then
     check_space "/mnt/blockstore/plex/media" "/opt/plex/media.new"
     migrate_data "/mnt/blockstore/plex/media" "/opt/plex/media.new"
     
+    # Remove override file to revert to default configuration
+    rm -f docker-compose.override.yml
+    
     # Update paths
     rm -f /opt/plex/media
     mv /opt/plex/media.new /opt/plex/media
+    
+    # Verify docker config
+    echo -e "${YELLOW}Verifying configuration...${NC}"
+    docker-compose config
 else
     echo "Usage: $0 [to-block|to-local]"
     exit 1
