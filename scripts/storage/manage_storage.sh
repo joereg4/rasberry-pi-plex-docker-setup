@@ -90,11 +90,28 @@ expand_storage() {
          -H "Content-Type: application/json" \
          -X PATCH \
          -d "{\"size_gb\": ${new_size}}" \
-         "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}"
+         "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}" > /tmp/vultr_response
     
     if [ $? -eq 0 ]; then
+        # Check API response
+        if grep -q "error" /tmp/vultr_response; then
+            echo -e "${RED}Vultr API Error:${NC}"
+            cat /tmp/vultr_response
+            rm /tmp/vultr_response
+            exit 1
+        fi
+        
         echo "Waiting for resize to complete..."
-        sleep 30  # Give Vultr time to process
+        # Wait up to 5 minutes for resize
+        for i in {1..30}; do
+            echo -n "."
+            sleep 10
+            current_check=$(get_block_size)
+            if [ "$current_check" -ge "$new_size" ]; then
+                echo -e "\n${GREEN}Block storage expanded successfully${NC}"
+                break
+            fi
+        done
         
         # Grow the filesystem
         echo "Growing filesystem..."
