@@ -137,11 +137,6 @@ setup_vultr() {
     sed -i "s/VULTR_API_KEY=.*/VULTR_API_KEY=$vultr_api_key/" .env
     export VULTR_API_KEY="$vultr_api_key"
     
-    # Configure vultr-cli
-    echo -e "\n${YELLOW}Configuring Vultr CLI...${NC}"
-    echo "$vultr_api_key" | vultr-cli config
-    echo -e "${GREEN}✓ Vultr CLI configured${NC}"
-    
     # Test the API key
     echo -e "\n${YELLOW}Testing Vultr API connection...${NC}"
     ACCOUNT_INFO=$(curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
