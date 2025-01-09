@@ -1,58 +1,51 @@
 #!/bin/bash
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+# Source .env
+set -a
+source .env
+set +a
 
-# Function to show usage
-show_usage() {
-    echo -e "${GREEN}Usage:${NC}"
-    echo "  ./manage_test.sh [command]"
-    echo ""
-    echo "Commands:"
-    echo "  clean    - Clean test environment"
-    echo "  start    - Start test container"
-    echo "  rebuild  - Clean and start fresh"
-    echo ""
-}
+echo "=== Block Storage Expansion Test ==="
 
-# Clean function
-clean_test() {
-    echo -e "${YELLOW}Cleaning test environment...${NC}"
-    # Remove old containers
-    docker ps -a | grep plex-test | awk '{print $1}' | xargs -r docker rm -f
-    # Remove old images
-    docker images | grep plex-test | awk '{print $3}' | xargs -r docker rmi -f
-    # Remove test data
-    rm -rf test_data
-}
+# 1. Check current size
+echo -e "\nInitial size:"
+df -h /mnt/blockstore
 
-# Start function
-start_test() {
-    echo -e "${YELLOW}Starting test container...${NC}"
-    # Build and run test container
-    docker build -t plex-test -f Dockerfile.test .
-    docker run -it --rm \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        plex-test /bin/bash
-}
+# 2. Detach block storage
+echo -e "\nDetaching block storage..."
+curl -s -X POST \
+    -H "Authorization: Bearer ${VULTR_API_KEY}" \
+    "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}/detach"
 
-# Main script
-case "$1" in
-    "clean")
-        clean_test
-        ;;
-    "start")
-        start_test
-        ;;
-    "rebuild")
-        clean_test
-        start_test
-        ;;
-    *)
-        show_usage
-        exit 1
-        ;;
-esac
+echo "Waiting for detachment (30s)..."
+sleep 30
+
+# 3. Resize to 150GB
+echo -e "\nResizing to 150GB..."
+curl -s -X PATCH \
+    -H "Authorization: Bearer ${VULTR_API_KEY}" \
+    -H "Content-Type: application/json" \
+    -d '{"size_gb": 150}' \
+    "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}"
+
+echo "Waiting for resize (30s)..."
+sleep 30
+
+# 4. Reattach
+echo -e "\nReattaching block storage..."
+curl -s -X POST \
+    -H "Authorization: Bearer ${VULTR_API_KEY}" \
+    -H "Content-Type: application/json" \
+    -d "{\"instance_id\":\"${VULTR_INSTANCE_ID}\"}" \
+    "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}/attach"
+
+echo "Waiting for reattachment (30s)..."
+sleep 30
+
+# 5. Resize filesystem
+echo -e "\nResizing filesystem..."
+resize2fs /dev/vdb
+
+# 6. Verify
+echo -e "\nNew size:"
+df -h /mnt/blockstore
