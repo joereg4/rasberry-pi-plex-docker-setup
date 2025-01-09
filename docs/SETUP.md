@@ -38,6 +38,9 @@ sudo chmod -R 755 /mnt/blockstore/plex
 git clone https://github.com/joereg4/plex-docker-setup.git
 cd plex-docker-setup
 
+# Configure Git (optional)
+git config core.fileMode false  # Ignore permission changes
+
 # Copy and edit environment file
 cp .env.example .env
 nano .env

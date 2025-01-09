@@ -177,6 +177,18 @@ sed -i "s|TZ=.*|TZ=$timezone|" .env
 # Export for immediate use
 export TZ="$timezone"
 
+# Configure Git to ignore file permission changes
+echo -e "\n${YELLOW}Configuring Git...${NC}"
+git config core.fileMode false
+
+# Stash any local changes
+if git diff --quiet; then
+    echo -e "${GREEN}✓ Git working directory clean${NC}"
+else
+    echo -e "${YELLOW}Stashing local changes...${NC}"
+    git stash
+fi
+
 # Verify running as root
 if [ "$(id -u)" != "0" ]; then
     echo -e "${RED}Error: This script must be run as root${NC}"
