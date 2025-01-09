@@ -77,6 +77,9 @@ expand_storage() {
     local current_size=$(get_block_size)
     local new_size=$((current_size + BLOCK_INCREMENT))
     
+    # Save expansion state
+    echo "size=$new_size" > /tmp/storage_expansion_state
+    
     echo -e "\n${YELLOW}=== Starting Block Storage Expansion ===${NC}"
     echo -e "Current Size: ${current_size}GB"
     echo -e "Target Size: ${new_size}GB"
@@ -87,6 +90,11 @@ expand_storage() {
     
     echo -e "${YELLOW}Unmounting block storage...${NC}"
     umount /dev/vdb || true
+    
+    echo -e "${YELLOW}WARNING: SSH connection may be interrupted during detachment${NC}"
+    echo -e "${YELLOW}If disconnected, wait 30 seconds and reconnect${NC}"
+    echo -e "${YELLOW}Then run: ./scripts/storage/manage_storage.sh resume${NC}"
+    sleep 5
     
     # 2. Detach block storage
     echo -e "${YELLOW}Detaching block storage...${NC}"
@@ -160,8 +168,33 @@ expand_storage() {
     echo -e "\n${GREEN}=== Block Storage Expansion Complete ===${NC}"
 }
 
+# Function to resume expansion after disconnect
+resume_expansion() {
+    if [ ! -f "/tmp/storage_expansion_state" ]; then
+        echo -e "${RED}No expansion state found${NC}"
+        exit 1
+    fi
+    
+    # Load saved state
+    source /tmp/storage_expansion_state
+    
+    echo -e "${YELLOW}Resuming expansion to ${size}GB...${NC}"
+    
+    # Continue with resize
+    RESIZE_RESPONSE=$(curl -s -X PATCH \
+        -H "Authorization: Bearer ${VULTR_API_KEY}" \
+        -H "Content-Type: application/json" \
+        -d "{\"size_gb\": ${size}}" \
+        "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}")
+    
+    # ... rest of expansion process ...
+}
+
 # Main logic
 case "$1" in
+    "resume")
+        resume_expansion
+        ;;
     "check")
         if check_block_storage; then
             usage=$(get_usage "/mnt/blockstore")
