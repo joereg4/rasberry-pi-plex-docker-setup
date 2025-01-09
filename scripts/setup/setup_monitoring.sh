@@ -69,66 +69,6 @@ setup_email() {
 setup_vultr() {
     echo -e "\n${YELLOW}Setting up Vultr monitoring...${NC}"
     
-    # State file for tracking progress
-    STATE_FILE="/tmp/vultr_setup_state"
-    
-    # Function to save state
-    save_state() {
-        echo "$1" > "$STATE_FILE"
-    }
-    
-    # Function to get state
-    get_state() {
-        if [ -f "$STATE_FILE" ]; then
-            cat "$STATE_FILE"
-        else
-            echo "init"
-        fi
-    }
-    
-    # Check if we're resuming from a previous attempt
-    CURRENT_STATE=$(get_state)
-    echo -e "${YELLOW}Resuming from state: $CURRENT_STATE${NC}"
-    
-    # Install Go if needed
-    if [ "$CURRENT_STATE" = "init" ]; then
-        if ! command -v go &> /dev/null; then
-            wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz
-            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
-            export PATH=$PATH:/usr/local/go/bin
-            rm go1.20.14.linux-amd64.tar.gz
-            
-            # Add Go to current shell's PATH
-            eval "$(go env)"
-            export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
-        fi
-        save_state "go_installed"
-    fi
-    
-    # Setup Go workspace
-    if [ "$CURRENT_STATE" = "go_installed" ] || [ "$CURRENT_STATE" = "init" ]; then
-        mkdir -p ~/go/{bin,pkg,src}
-        export GOPATH=$HOME/go
-        export PATH=$PATH:$GOPATH/bin
-        export GO111MODULE=on
-        
-        # Ensure PATH includes Go bins
-        export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
-        save_state "workspace_setup"
-    fi
-    
-    # Install Vultr CLI
-    if [ "$CURRENT_STATE" = "workspace_setup" ] || [ "$CURRENT_STATE" = "init" ]; then
-        go install github.com/vultr/vultr-cli/v3@v3.3.0
-        # Verify vultr-cli is in PATH
-        if ! command -v vultr-cli &> /dev/null; then
-            echo -e "${RED}Error: vultr-cli not found in PATH${NC}"
-            echo -e "${YELLOW}Adding Go bins to PATH...${NC}"
-            export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
-        fi
-        save_state "vultr_cli_installed"
-    fi
-    
     # Get Vultr configuration
     echo "Enter your Vultr API key (from https://my.vultr.com/settings/#settingsapi):"
     read -r vultr_api_key
@@ -165,22 +105,20 @@ setup_vultr() {
             echo -e "\n${YELLOW}Available Block Storage:${NC}"
             BLOCKS=$(curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
                 "https://api.vultr.com/v2/blocks")
-            echo "$BLOCKS" | jq -r '.blocks[] | "\(.label) \(.size_gb)GB \(.id)"' | \
-                awk '{printf "%-22s %-9s %s\n", $1, $2, $3}'
+            echo -e "LABEL                   SIZE     STATUS   ATTACHED TO          ID"
+            echo "$BLOCKS" | jq -r '.blocks[] | "\(.label) \(.size_gb)GB \(.status) \(.attached_to_instance // "Not Attached") \(.id)"' | \
+                awk '{printf "%-22s %-8s %-8s %-18s %s\n", $1, $2, $3, $4, $5}'
+            
             echo "Enter your Block Storage ID from above:"
             read -r block_id
             sed -i "s/VULTR_BLOCK_ID=.*/VULTR_BLOCK_ID=$block_id/" .env
             export VULTR_BLOCK_ID="$block_id"
-
-            # Add Go and vultr-cli to PATH
-            echo 'export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin' >> ~/.bashrc
-            export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
-
-            # Setup block storage
-            echo -e "\n${YELLOW}Setting up block storage...${NC}"
             
-            # Save block storage ID for recovery
-            echo "$block_id" > "/tmp/vultr_block_id"
+            # Verify exports
+            echo -e "\n${YELLOW}Verifying Vultr configuration:${NC}"
+            echo "VULTR_API_KEY=${VULTR_API_KEY:0:8}..."
+            echo "VULTR_INSTANCE_ID=$VULTR_INSTANCE_ID"
+            echo "VULTR_BLOCK_ID=$VULTR_BLOCK_ID"
             
             # Check if block storage is already attached
             echo -e "${YELLOW}Checking current block storage status...${NC}"
