@@ -105,12 +105,19 @@ setup_vultr() {
             echo -e "\n${YELLOW}Available Block Storage:${NC}"
             BLOCKS=$(curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
                 "https://api.vultr.com/v2/blocks")
-            echo -e "LABEL                   SIZE     STATUS   ATTACHED TO          ID"
-            echo "$BLOCKS" | jq -r '.blocks[] | "\(.label) \(.size_gb)GB \(.status) \(.attached_to_instance // "Not Attached") \(.id)"' | \
-                awk '{printf "%-22s %-8s %-8s %-18s %s\n", $1, $2, $3, $4, $5}'
+            echo -e "LABEL                   SIZE     STATUS   REGION    TYPE         ID"
+            echo "$BLOCKS" | jq -r '.blocks[] | "\(.label) \(.size_gb)GB \(.status) \(.region) \(.block_type) \(.id)"' | \
+                awk '{printf "%-22s %-8s %-8s %-9s %-12s %s\n", $1, $2, $3, $4, $5, $6}'
             
             echo "Enter your Block Storage ID from above:"
             read -r block_id
+            
+            # Validate block ID exists
+            if ! echo "$BLOCKS" | jq -e ".blocks[] | select(.id == \"$block_id\")" > /dev/null; then
+                echo -e "${RED}Error: Invalid block storage ID${NC}"
+                exit 1
+            fi
+            
             sed -i "s/VULTR_BLOCK_ID=.*/VULTR_BLOCK_ID=$block_id/" .env
             export VULTR_BLOCK_ID="$block_id"
             
@@ -137,12 +144,12 @@ setup_vultr() {
                     -d "{\"instance_id\":\"${instance_id}\"}" \
                     "https://api.vultr.com/v2/blocks/${block_id}/attach")
                 
-                if ! echo "$ATTACH_RESPONSE" | jq -e '.error' > /dev/null; then
-                    echo -e "${GREEN}✓ Attachment initiated${NC}"
-                else
-                    ERROR_MSG=$(echo "$ATTACH_RESPONSE" | jq -r '.error.message')
+                if [ -z "$ATTACH_RESPONSE" ] || echo "$ATTACH_RESPONSE" | jq -e 'has("error")' > /dev/null; then
+                    ERROR_MSG=$(echo "$ATTACH_RESPONSE" | jq -r '.error // "Unknown error"')
                     echo -e "${RED}Error attaching block storage: $ERROR_MSG${NC}"
                     exit 1
+                else
+                    echo -e "${GREEN}✓ Attachment initiated${NC}"
                 fi
             fi
             
