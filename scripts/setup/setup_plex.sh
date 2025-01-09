@@ -185,10 +185,110 @@ echo "TZ=$TZ"
 
 # Verify block storage is set up
 echo -e "\n${YELLOW}Verifying block storage...${NC}"
-if [ ! -b "/dev/vdb" ] || ! mountpoint -q "/mnt/blockstore"; then
-    echo -e "${RED}Error: Block storage not properly set up${NC}"
-    echo "Please follow block storage setup instructions in docs/SETUP.md"
+
+echo -e "\n${YELLOW}Checking available block devices:${NC}"
+lsblk
+
+# Find block device (either vdb or vdc)
+BLOCK_DEVICE=""
+for dev in vdb vdc; do
+    if [ -b "/dev/$dev" ]; then
+        BLOCK_DEVICE="/dev/$dev"
+        echo -e "${GREEN}Found block storage at $BLOCK_DEVICE${NC}"
+        break
+    fi
+done
+
+if [ -z "$BLOCK_DEVICE" ]; then
+    echo -e "${RED}Error: No block storage device found${NC}"
+    echo "Available devices:"
+    lsblk
     exit 1
+fi
+
+# Check if mounted
+if ! mountpoint -q "/mnt/blockstore"; then
+    echo -e "${YELLOW}Block storage not mounted, attempting to mount...${NC}"
+    
+    # Create mount point if it doesn't exist
+    if [ ! -d "/mnt/blockstore" ]; then
+        echo "Creating mount point directory..."
+        mkdir -p /mnt/blockstore
+    fi
+    
+    # Check if we need to format
+    if ! blkid $BLOCK_DEVICE | grep -q 'ext4'; then
+        echo -e "${YELLOW}Block storage needs formatting. Formatting as ext4...${NC}"
+        mkfs.ext4 $BLOCK_DEVICE
+    fi
+    
+    # Mount the device
+    echo "Mounting $BLOCK_DEVICE to /mnt/blockstore..."
+    mount $BLOCK_DEVICE /mnt/blockstore
+    
+    # Add to fstab if not already there
+    if ! grep -q "$BLOCK_DEVICE.*\/mnt\/blockstore" /etc/fstab; then
+        echo "Adding to fstab for persistence..."
+        echo "$BLOCK_DEVICE /mnt/blockstore ext4 defaults,nofail 0 0" >> /etc/fstab
+    fi
+    
+    # Verify mount succeeded
+    if ! mountpoint -q "/mnt/blockstore"; then
+        echo -e "${RED}Failed to mount block storage${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}Successfully mounted block storage${NC}"
+fi
+
+# Show mount details
+echo -e "\n${YELLOW}Current mount details:${NC}"
+df -h /mnt/blockstore
+
+# Verify filesystem
+echo -e "\n${YELLOW}Verifying filesystem...${NC}"
+if ! df -T /mnt/blockstore | grep -q 'ext4'; then
+    echo -e "${RED}Error: Block storage must be formatted as ext4${NC}"
+    echo "Current filesystem:"
+    df -T /mnt/blockstore
+    exit 1
+fi
+
+# Verify directory structure
+echo -e "\n${YELLOW}Verifying directory structure:${NC}"
+REQUIRED_DIRS=(
+    "/mnt/blockstore/plex"
+    "/mnt/blockstore/plex/media"
+    "/mnt/blockstore/plex/media/Movies"
+    "/mnt/blockstore/plex/media/TV Shows"
+    "/mnt/blockstore/plex/media/Music"
+    "/mnt/blockstore/plex/media/Photos"
+    "/opt/plex"
+    "/opt/plex/database"
+    "/opt/plex/transcode"
+)
+
+for dir in "${REQUIRED_DIRS[@]}"; do
+    if [ -d "$dir" ]; then
+        echo -e "${GREEN}✓ Found $dir${NC}"
+    else
+        echo -e "${YELLOW}Creating $dir${NC}"
+        mkdir -p "$dir"
+    fi
+done
+
+# Check permissions
+echo -e "\n${YELLOW}Checking permissions...${NC}"
+echo "Setting ownership to plex:plex (1000:1000)..."
+if [ "$(stat -c %u:%g /mnt/blockstore/plex)" != "1000:1000" ]; then
+    chown -R 1000:1000 /mnt/blockstore/plex
+fi
+
+# Verify space
+echo -e "\n${YELLOW}Checking available space...${NC}"
+AVAIL=$(df -BG /mnt/blockstore | awk 'NR==2 {print $4}' | sed 's/G//')
+if [ "$AVAIL" -lt "50" ]; then
+    echo -e "${YELLOW}Warning: Less than 50GB available on block storage${NC}"
+    df -h /mnt/blockstore
 fi
 
 # Verify media directory structure
@@ -203,8 +303,23 @@ fi
 echo -e "\n${YELLOW}Creating directories...${NC}"
 mkdir -p /opt/plex/{transcode,database}
 
+# Create media directories on block storage if they don't exist
+echo -e "\n${YELLOW}Setting up media directories...${NC}"
+if [ ! -d "/mnt/blockstore/plex/media" ]; then
+    mkdir -p /mnt/blockstore/plex/media/{Movies,"TV Shows",Music,Photos}
+    echo -e "${GREEN}✓ Created media directories${NC}"
+fi
+
 # Create symlink to block storage
+echo -e "\n${YELLOW}Creating symlinks...${NC}"
 ln -sf /mnt/blockstore/plex/media /opt/plex/media
+if [ -L "/opt/plex/media" ] && [ -d "/opt/plex/media" ]; then
+    echo -e "${GREEN}✓ Media symlink created successfully${NC}"
+    ls -l /opt/plex/media
+else
+    echo -e "${RED}Error: Failed to create media symlink${NC}"
+    exit 1
+fi
 
 # Set permissions
 chown -R 1000:1000 /opt/plex
