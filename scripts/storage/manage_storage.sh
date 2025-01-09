@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Source .env if it exists
+if [ -f ".env" ]; then
+    set -a  # automatically export all variables
+    source .env
+    set +a
+elif [ -f "../.env" ]; then
+    set -a
+    source "../.env"
+    set +a
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -14,23 +25,6 @@ BLOCK_INCREMENT=50      # GB - Smaller increments
 
 # Debug: Show current directory and .env location
 echo "Current directory: $(pwd)"
-
-# Load environment variables
-if [ ! -f ".env" ] && [ ! -f "../.env" ]; then
-    echo -e "${RED}Error: .env file not found in current or parent directory${NC}"
-    exit 1
-fi
-
-# Try to load .env from current or parent directory
-if [ -f ".env" ]; then
-    set -a
-    . ".env"
-    set +a
-elif [ -f "../.env" ]; then
-    set -a
-    . "../.env"
-    set +a
-fi
 
 # Verify required environment variables
 if [ -z "$VULTR_API_KEY" ]; then

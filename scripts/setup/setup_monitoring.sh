@@ -3,6 +3,13 @@
 # Source common functions
 source "$(dirname "$0")/../common/common.sh"
 
+# Source .env if it exists
+if [ -f ".env" ]; then
+    set -a  # automatically export all variables
+    source .env
+    set +a
+fi
+
 echo "=== Monitoring Setup ==="
 
 # Verify we're in the correct directory
