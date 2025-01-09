@@ -183,3 +183,4212 @@ docker start plex
 - Go to `http://YOUR_SERVER_IP:32400/web`
 - Sign in with your Plex account
 - Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+
+## Verification
+After each step:
+1. **Plex**:
+   - Access http://YOUR_IP:32400/web
+   - Verify login works
+   - Check media directories
+
+2. **Email**:
+   - Check notification settings
+   - Test email alerts
+
+3. **Vultr**:
+   - Verify CLI works
+   - Check storage mounting
+   - Test auto-expansion
+
+## Troubleshooting
+If any script fails:
+1. Check prerequisites
+2. Verify previous steps completed
+3. Check logs in /opt/plex-docker-setup/scripts/reports/ 
+
+## Setup Process
+
+### Order of Setup
+1. First, set up Plex:
+   ```bash
+   ./scripts/setup/setup_plex.sh
+   ```
+
+2. Then configure email (optional):
+   ```bash
+   ./scripts/setup_email.sh
+   ```
+
+3. Configure Vultr:
+   ```bash
+   ./scripts/configure_vultr.sh
+   ```
+
+4. Set up automated tasks:
+   ```bash
+   ./scripts/setup_cron.sh
+   ```
+   This sets up:
+   - Storage monitoring (5-minute intervals)
+   - Media optimization (nightly)
+   - Weekly cleanup
+
+### Vultr Configuration
+- Choose option 4 for guided setup
+- Requires API key from Vultr dashboard
+- Will detect existing instance and storage
+- Validates all settings before saving 
+
+### Authorization Issues
+If you see "You do not have permission to access this server" or "No soup for you":
+
+1. **Stop Plex Server**:
+```bash
+docker stop plex
+```
+
+2. **Edit Preferences File**:
+```bash
+nano /opt/plex/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml
+```
+
+3. **Remove these lines**:
+```xml
+PlexOnlineHome="1"
+PlexOnlineMail="your-email@example.com"
+PlexOnlineToken="your-token"
+PlexOnlineUsername="your-username"
+```
+
+4. **Restart Plex**:
+```bash
+docker start plex
+```
+
+5. **Access Local Web Interface**:
+- Go to `http://YOUR_SERVER_IP:32400/web`
+- Sign in with your Plex account
+- Server should now be claimable 
+
+## Block Storage Operations
+
+When performing block storage operations (detach, resize, reattach), SSH connections may be interrupted. Here's how to handle it:
+
+1. If disconnected during detach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Check Vultr dashboard to confirm detachment
+
+2. If disconnected during reattach:
+   - Wait 30 seconds
+   - Reconnect via SSH
+   - Run these commands to complete the process:
+   ```bash
+   # Resize filesystem (works while mounted)
+   resize2fs /dev/vdb
+  
+   # Verify new size
+   df -h /mnt/blockstore
+  
+   # Start Plex
+   cd ~/plex-docker-setup
+   docker-compose up -d
+   ```
+
+Note: The filesystem can be resized while mounted, no need to unmount/remount.
+   ``` 
