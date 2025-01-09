@@ -69,22 +69,52 @@ setup_email() {
 setup_vultr() {
     echo -e "\n${YELLOW}Setting up Vultr monitoring...${NC}"
     
+    # State file for tracking progress
+    STATE_FILE="/tmp/vultr_setup_state"
+    
+    # Function to save state
+    save_state() {
+        echo "$1" > "$STATE_FILE"
+    }
+    
+    # Function to get state
+    get_state() {
+        if [ -f "$STATE_FILE" ]; then
+            cat "$STATE_FILE"
+        else
+            echo "init"
+        fi
+    }
+    
+    # Check if we're resuming from a previous attempt
+    CURRENT_STATE=$(get_state)
+    echo -e "${YELLOW}Resuming from state: $CURRENT_STATE${NC}"
+    
     # Install Go if needed
-    if ! command -v go &> /dev/null; then
-        wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz
-        rm -rf /usr/local/go && tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
-        export PATH=$PATH:/usr/local/go/bin
-        rm go1.20.14.linux-amd64.tar.gz
+    if [ "$CURRENT_STATE" = "init" ]; then
+        if ! command -v go &> /dev/null; then
+            wget https://go.dev/dl/go1.20.14.linux-amd64.tar.gz
+            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
+            export PATH=$PATH:/usr/local/go/bin
+            rm go1.20.14.linux-amd64.tar.gz
+        fi
+        save_state "go_installed"
     fi
     
     # Setup Go workspace
-    mkdir -p ~/go/{bin,pkg,src}
-    export GOPATH=$HOME/go
-    export PATH=$PATH:$GOPATH/bin
-    export GO111MODULE=on
+    if [ "$CURRENT_STATE" = "go_installed" ] || [ "$CURRENT_STATE" = "init" ]; then
+        mkdir -p ~/go/{bin,pkg,src}
+        export GOPATH=$HOME/go
+        export PATH=$PATH:$GOPATH/bin
+        export GO111MODULE=on
+        save_state "workspace_setup"
+    fi
     
     # Install Vultr CLI
-    go install github.com/vultr/vultr-cli/v3@v3.3.0
+    if [ "$CURRENT_STATE" = "workspace_setup" ] || [ "$CURRENT_STATE" = "init" ]; then
+        go install github.com/vultr/vultr-cli/v3@v3.3.0
+        save_state "vultr_cli_installed"
+    fi
     
     # Get Vultr configuration
     echo "Enter your Vultr API key (from https://my.vultr.com/settings/#settingsapi):"
@@ -100,116 +130,145 @@ setup_vultr() {
     echo -e "${GREEN}✓ Vultr CLI configured${NC}"
     
     # Test the API key
-    if command -v vultr-cli &> /dev/null; then
-        echo -e "\n${YELLOW}Testing Vultr API connection...${NC}"
-        if vultr-cli account info; then
-            echo -e "${GREEN}✓ Vultr API key configured${NC}"
-            
-            # Show instances with filtered output
-            echo -e "\n${YELLOW}Available Instances:${NC}"
-            vultr-cli instance list | awk '
-                NR==1 {print "LABEL                   IP                      ID"}
-                NR>1 && NR<5 {printf "%-22s %-22s %s\n", $3, $2, $1}'
-            
-            echo "Enter your Instance ID from above:"
-            read -r instance_id
-            sed -i "s/VULTR_INSTANCE_ID=.*/VULTR_INSTANCE_ID=$instance_id/" .env
-            export VULTR_INSTANCE_ID="$instance_id"
-            
-            # Ask about block storage
-            echo -e "\n${YELLOW}Do you want to configure block storage? (y/n)${NC}"
-            read -r use_block
-            
-            if [[ $use_block =~ ^[Yy]$ ]]; then
-                echo -e "\n${YELLOW}Available Block Storage:${NC}"
-                vultr-cli block-storage list | awk '
-                    NR==1 {print "LABEL                   SIZE GB    ID"}
-                    NR>1 && NR<5 {printf "%-22s %-9s %s\n", $5, $4, $1}'
-                echo "Enter your Block Storage ID from above:"
-                read -r block_id
-                sed -i "s/VULTR_BLOCK_ID=.*/VULTR_BLOCK_ID=$block_id/" .env
-                export VULTR_BLOCK_ID="$block_id"
+    echo -e "\n${YELLOW}Testing Vultr API connection...${NC}"
+    ACCOUNT_INFO=$(curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
+        "https://api.vultr.com/v2/account")
+    
+    if echo "$ACCOUNT_INFO" | grep -q "email"; then
+        echo -e "${GREEN}✓ Vultr API key configured${NC}"
+        
+        # Show instances with filtered output
+        echo -e "\n${YELLOW}Available Instances:${NC}"
+        INSTANCES=$(curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
+            "https://api.vultr.com/v2/instances")
+        echo "$INSTANCES" | jq -r '.instances[] | "\(.label) \(.main_ip) \(.id)"' | \
+            awk '{printf "%-22s %-22s %s\n", $1, $2, $3}'
+        
+        echo "Enter your Instance ID from above:"
+        read -r instance_id
+        sed -i "s/VULTR_INSTANCE_ID=.*/VULTR_INSTANCE_ID=$instance_id/" .env
+        export VULTR_INSTANCE_ID="$instance_id"
+        
+        # Ask about block storage
+        echo -e "\n${YELLOW}Do you want to configure block storage? (y/n)${NC}"
+        read -r use_block
+        
+        if [[ $use_block =~ ^[Yy]$ ]]; then
+            echo -e "\n${YELLOW}Available Block Storage:${NC}"
+            vultr-cli block-storage list | awk '
+                NR==1 {print "LABEL                   SIZE GB    ID"}
+                NR>1 && NR<5 {printf "%-22s %-9s %s\n", $5, $4, $1}'
+            echo "Enter your Block Storage ID from above:"
+            read -r block_id
+            sed -i "s/VULTR_BLOCK_ID=.*/VULTR_BLOCK_ID=$block_id/" .env
+            export VULTR_BLOCK_ID="$block_id"
 
-                # Add Go and vultr-cli to PATH
-                echo 'export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin' >> ~/.bashrc
-                export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
+            # Add Go and vultr-cli to PATH
+            echo 'export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin' >> ~/.bashrc
+            export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
 
-                # Setup block storage
-                echo -e "\n${YELLOW}Setting up block storage...${NC}"
-                
+            # Setup block storage
+            echo -e "\n${YELLOW}Setting up block storage...${NC}"
+            
+            # Save block storage ID for recovery
+            echo "$block_id" > "/tmp/vultr_block_id"
+            
+            # Check if block storage is already attached
+            echo -e "${YELLOW}Checking current block storage status...${NC}"
+            BLOCK_STATUS=$(curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
+                "https://api.vultr.com/v2/blocks/${block_id}")
+            
+            if echo "$BLOCK_STATUS" | jq -r '.block.status' | grep -q "active"; then
+                echo -e "${GREEN}✓ Block storage already attached${NC}"
+                save_state "storage_attached"
+            else
                 # Attach block storage using Vultr CLI
                 echo -e "${YELLOW}Attaching block storage to instance...${NC}"
-                vultr-cli block-storage attach $block_id --instance $instance_id
+                ATTACH_RESPONSE=$(curl -s -X POST \
+                    -H "Authorization: Bearer ${VULTR_API_KEY}" \
+                    -H "Content-Type: application/json" \
+                    -d "{\"instance_id\":\"${instance_id}\"}" \
+                    "https://api.vultr.com/v2/blocks/${block_id}/attach")
                 
-                # Wait for device to appear
-                echo -e "${YELLOW}Waiting for block device...${NC}"
-                for i in {1..30}; do
-                    if [ -b "/dev/vdb" ]; then
-                        echo -e "${GREEN}✓ Block device detected${NC}"
-                        break
-                    fi
-                    echo -n "."
-                    sleep 2
-                done
-                
-                # Verify attachment status
-                echo -e "${YELLOW}Verifying block storage attachment...${NC}"
-                if ! vultr-cli block-storage get $block_id | grep -q "active"; then
-                    echo -e "${RED}Error: Block storage not properly attached${NC}"
+                if ! echo "$ATTACH_RESPONSE" | jq -e '.error' > /dev/null; then
+                    echo -e "${GREEN}✓ Attachment initiated${NC}"
+                else
+                    ERROR_MSG=$(echo "$ATTACH_RESPONSE" | jq -r '.error.message')
+                    echo -e "${RED}Error attaching block storage: $ERROR_MSG${NC}"
                     exit 1
-                fi
-                
-                # Verify device exists and is accessible
-                if [ ! -b "/dev/vdb" ]; then
-                    echo -e "${RED}Error: Block device /dev/vdb not found${NC}"
-                    exit 1
-                fi
-                
-                # Show block device info
-                echo -e "${YELLOW}Block device details:${NC}"
-                lsblk /dev/vdb
-                
-                mkdir -p /mnt/blockstore
-                
-                # Check if device needs formatting
-                if ! blkid /dev/vdb >/dev/null 2>&1; then
-                    echo -e "${YELLOW}Formatting block storage...${NC}"
-                    mkfs.ext4 /dev/vdb
-                fi
-
-                # Mount the device
-                mount /dev/vdb /mnt/blockstore
-                echo -e "${YELLOW}Verifying mount point...${NC}"
-                if ! mountpoint -q /mnt/blockstore; then
-                    echo -e "${RED}Error: Failed to mount block storage${NC}"
-                    exit 1
-                fi
-                
-                # Check mount permissions and space
-                echo -e "${YELLOW}Checking mount details:${NC}"
-                df -h /mnt/blockstore
-                echo -e "${YELLOW}Mount permissions:${NC}"
-                ls -ld /mnt/blockstore
-                
-                # Verify write access
-                echo -e "${YELLOW}Testing write access...${NC}"
-                if ! touch /mnt/blockstore/test_write 2>/dev/null; then
-                    echo -e "${RED}Error: Cannot write to mount point${NC}"
-                    exit 1
-                fi
-                rm -f /mnt/blockstore/test_write
-                
-                echo -e "${GREEN}✓ Block storage mounted${NC}"
-
-                # Add to fstab for persistent mount
-                if ! grep -q "/dev/vdb" /etc/fstab; then
-                    echo "/dev/vdb /mnt/blockstore ext4 defaults,nofail 0 0" >> /etc/fstab
-                    echo -e "${GREEN}✓ Added to fstab for persistent mount${NC}"
                 fi
             fi
-        else
-            echo -e "${RED}× Error: Could not connect to Vultr API${NC}"
-            return 1
+            
+            # Wait for device to appear
+            echo -e "${YELLOW}Waiting for block device...${NC}"
+            for i in {1..30}; do
+                if [ -b "/dev/vdb" ]; then
+                    echo -e "${GREEN}✓ Block device detected${NC}"
+                    break
+                fi
+                if [ $i -eq 30 ]; then
+                    echo -e "${RED}Timeout waiting for block device${NC}"
+                    echo -e "${YELLOW}Please check Vultr dashboard and run setup again if needed${NC}"
+                    exit 1
+                fi
+                echo -n "."
+                sleep 2
+            done
+            
+            # Verify attachment status
+            echo -e "${YELLOW}Verifying block storage attachment...${NC}"
+            if ! vultr-cli block-storage get $block_id | grep -q "active"; then
+                echo -e "${RED}Error: Block storage not properly attached${NC}"
+                exit 1
+            fi
+            
+            # Verify device exists and is accessible
+            if [ ! -b "/dev/vdb" ]; then
+                echo -e "${RED}Error: Block device /dev/vdb not found${NC}"
+                exit 1
+            fi
+            
+            # Show block device info
+            echo -e "${YELLOW}Block device details:${NC}"
+            lsblk /dev/vdb
+            
+            mkdir -p /mnt/blockstore
+            
+            # Check if device needs formatting
+            if ! blkid /dev/vdb >/dev/null 2>&1; then
+                echo -e "${YELLOW}Formatting block storage...${NC}"
+                mkfs.ext4 /dev/vdb
+            fi
+
+            # Mount the device
+            mount /dev/vdb /mnt/blockstore
+            echo -e "${YELLOW}Verifying mount point...${NC}"
+            if ! mountpoint -q /mnt/blockstore; then
+                echo -e "${RED}Error: Failed to mount block storage${NC}"
+                exit 1
+            fi
+            
+            # Check mount permissions and space
+            echo -e "${YELLOW}Checking mount details:${NC}"
+            df -h /mnt/blockstore
+            echo -e "${YELLOW}Mount permissions:${NC}"
+            ls -ld /mnt/blockstore
+            
+            # Verify write access
+            echo -e "${YELLOW}Testing write access...${NC}"
+            if ! touch /mnt/blockstore/test_write 2>/dev/null; then
+                echo -e "${RED}Error: Cannot write to mount point${NC}"
+                exit 1
+            fi
+            rm -f /mnt/blockstore/test_write
+            
+            echo -e "${GREEN}✓ Block storage mounted${NC}"
+
+            # Add to fstab for persistent mount
+            if ! grep -q "/dev/vdb" /etc/fstab; then
+                echo "/dev/vdb /mnt/blockstore ext4 defaults,nofail 0 0" >> /etc/fstab
+                echo -e "${GREEN}✓ Added to fstab for persistent mount${NC}"
+            fi
         fi
     fi
 }

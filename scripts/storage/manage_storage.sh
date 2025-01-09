@@ -91,32 +91,60 @@ expand_storage() {
     echo -e "${YELLOW}Stopping Docker containers...${NC}"
     docker-compose down || true
     
-    # Unmount block storage
     echo -e "${YELLOW}Unmounting block storage...${NC}"
     umount /dev/vdb || true
     
-    # Check for processes using the mount
-    echo -e "${YELLOW}Checking for processes using block storage...${NC}"
-    lsof | grep /mnt/blockstore || true
-    
-    # 2. Resize block storage
-    echo -e "${YELLOW}Calling Vultr API to resize block storage...${NC}"
-    vultr-cli block-storage resize $VULTR_BLOCK_ID --size=$new_size
-    
-    # Verify resize operation
-    echo -e "${YELLOW}Verifying resize operation...${NC}"
-    vultr-cli block-storage get $VULTR_BLOCK_ID
-    
-    # 3. Re-attach block storage
+    # 2. Detach block storage
     echo -e "${YELLOW}Detaching block storage...${NC}"
-    vultr-cli block-storage detach $VULTR_BLOCK_ID
+    DETACH_RESPONSE=$(curl -s -X POST \
+        -H "Authorization: Bearer ${VULTR_API_KEY}" \
+        "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}/detach")
+    
+    if ! echo "$DETACH_RESPONSE" | jq -e '.error' > /dev/null; then
+        echo -e "${GREEN}✓ Detachment initiated${NC}"
+    else
+        ERROR_MSG=$(echo "$DETACH_RESPONSE" | jq -r '.error.message')
+        echo -e "${RED}Error detaching block storage: $ERROR_MSG${NC}"
+        exit 1
+    fi
+    
     sleep 10
     
+    # 3. Resize block storage
+    echo -e "${YELLOW}Resizing block storage...${NC}"
+    RESIZE_RESPONSE=$(curl -s -X PATCH \
+        -H "Authorization: Bearer ${VULTR_API_KEY}" \
+        -H "Content-Type: application/json" \
+        -d "{\"size_gb\": ${new_size}}" \
+        "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}")
+    
+    if ! echo "$RESIZE_RESPONSE" | jq -e '.error' > /dev/null; then
+        echo -e "${GREEN}✓ Resize initiated${NC}"
+    else
+        ERROR_MSG=$(echo "$RESIZE_RESPONSE" | jq -r '.error.message')
+        echo -e "${RED}Error resizing block storage: $ERROR_MSG${NC}"
+        exit 1
+    fi
+    
+    # 4. Reattach block storage
     echo -e "${YELLOW}Reattaching block storage...${NC}"
-    vultr-cli block-storage attach $VULTR_BLOCK_ID --instance $VULTR_INSTANCE_ID
+    ATTACH_RESPONSE=$(curl -s -X POST \
+        -H "Authorization: Bearer ${VULTR_API_KEY}" \
+        -H "Content-Type: application/json" \
+        -d "{\"instance_id\":\"${VULTR_INSTANCE_ID}\"}" \
+        "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}/attach")
+    
+    if ! echo "$ATTACH_RESPONSE" | jq -e '.error' > /dev/null; then
+        echo -e "${GREEN}✓ Attachment initiated${NC}"
+    else
+        ERROR_MSG=$(echo "$ATTACH_RESPONSE" | jq -r '.error.message')
+        echo -e "${RED}Error attaching block storage: $ERROR_MSG${NC}"
+        exit 1
+    fi
+    
     sleep 20
     
-    # 4. Expand filesystem
+    # 5. Expand filesystem
     echo -e "${YELLOW}Verifying block device...${NC}"
     lsblk
     
@@ -124,14 +152,14 @@ expand_storage() {
     e2fsck -f /dev/vdb
     resize2fs -f /dev/vdb
     
-    # 5. Remount and verify
+    # 6. Remount and verify
     echo -e "${YELLOW}Remounting block storage...${NC}"
     mount /dev/vdb /mnt/blockstore
     
     echo -e "${YELLOW}Verifying new size:${NC}"
     df -h /mnt/blockstore
     
-    # 6. Restart Docker and Plex
+    # 7. Restart Docker and Plex
     echo -e "${YELLOW}Restarting Docker containers...${NC}"
     docker-compose up -d
     
