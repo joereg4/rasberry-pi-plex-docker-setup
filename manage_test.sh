@@ -153,15 +153,27 @@ fi
 
 # 5. Resize filesystem
 echo -e "\nResizing filesystem..."
-resize2fs /dev/vdb
+if [ $DRY_RUN -eq 1 ]; then
+    echo "Would resize filesystem on /dev/vdb"
+else
+    resize2fs /dev/vdb
+fi
 
 # 6. Verify
 echo -e "\nNew size:"
-df -h /mnt/blockstore
+if [ $DRY_RUN -eq 1 ]; then
+    echo "Would show new size after resize"
+else
+    df -h /mnt/blockstore
+fi
 
 # Restore fstab
 echo -e "\nRestoring fstab..."
-mv /etc/fstab.bak /etc/fstab
+if [ $DRY_RUN -eq 1 ]; then
+    echo "Would restore fstab from backup"
+else
+    mv /etc/fstab.bak /etc/fstab
+fi
 
 # Show summary in dry-run mode
 if [ $DRY_RUN -eq 1 ]; then
@@ -172,4 +184,7 @@ if [ $DRY_RUN -eq 1 ]; then
     echo "4. Reattach block storage"
     echo "5. Resize filesystem"
     echo "6. Restore fstab"
+    echo -e "\n${YELLOW}No changes were made - this was a dry run${NC}"
+else
+    echo -e "\n${GREEN}Storage expansion completed successfully${NC}"
 fi
