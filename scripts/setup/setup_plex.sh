@@ -177,6 +177,12 @@ sed -i "s|TZ=.*|TZ=$timezone|" .env
 # Export for immediate use
 export TZ="$timezone"
 
+# Verify running as root
+if [ "$(id -u)" != "0" ]; then
+    echo -e "${RED}Error: This script must be run as root${NC}"
+    exit 1
+fi
+
 # Verify exports
 echo -e "\n${YELLOW}Verifying environment variables:${NC}"
 echo "PLEX_CLAIM=$PLEX_CLAIM"
@@ -206,52 +212,8 @@ if [ -z "$BLOCK_DEVICE" ]; then
     exit 1
 fi
 
-# Check if mounted
-if ! mountpoint -q "/mnt/blockstore"; then
-    echo -e "${YELLOW}Block storage not mounted, attempting to mount...${NC}"
-    
-    # Create mount point if it doesn't exist
-    if [ ! -d "/mnt/blockstore" ]; then
-        echo "Creating mount point directory..."
-        mkdir -p /mnt/blockstore
-    fi
-    
-    # Check if we need to format
-    if ! blkid $BLOCK_DEVICE | grep -q 'ext4'; then
-        echo -e "${YELLOW}Block storage needs formatting. Formatting as ext4...${NC}"
-        mkfs.ext4 $BLOCK_DEVICE
-    fi
-    
-    # Mount the device
-    echo "Mounting $BLOCK_DEVICE to /mnt/blockstore..."
-    mount $BLOCK_DEVICE /mnt/blockstore
-    
-    # Add to fstab if not already there
-    if ! grep -q "$BLOCK_DEVICE.*\/mnt\/blockstore" /etc/fstab; then
-        echo "Adding to fstab for persistence..."
-        echo "$BLOCK_DEVICE /mnt/blockstore ext4 defaults,nofail 0 0" >> /etc/fstab
-    fi
-    
-    # Verify mount succeeded
-    if ! mountpoint -q "/mnt/blockstore"; then
-        echo -e "${RED}Failed to mount block storage${NC}"
-        exit 1
-    fi
-    echo -e "${GREEN}Successfully mounted block storage${NC}"
-fi
-
-# Show mount details
-echo -e "\n${YELLOW}Current mount details:${NC}"
-df -h /mnt/blockstore
-
-# Verify filesystem
-echo -e "\n${YELLOW}Verifying filesystem...${NC}"
-if ! df -T /mnt/blockstore | grep -q 'ext4'; then
-    echo -e "${RED}Error: Block storage must be formatted as ext4${NC}"
-    echo "Current filesystem:"
-    df -T /mnt/blockstore
-    exit 1
-fi
+# Create required directories
+echo -e "\n${YELLOW}Creating directories...${NC}"
 
 # Verify directory structure
 echo -e "\n${YELLOW}Verifying directory structure:${NC}"
@@ -276,39 +238,10 @@ for dir in "${REQUIRED_DIRS[@]}"; do
     fi
 done
 
-# Check permissions
-echo -e "\n${YELLOW}Checking permissions...${NC}"
-echo "Setting ownership to plex:plex (1000:1000)..."
-if [ "$(stat -c %u:%g /mnt/blockstore/plex)" != "1000:1000" ]; then
-    chown -R 1000:1000 /mnt/blockstore/plex
-fi
-
-# Verify space
-echo -e "\n${YELLOW}Checking available space...${NC}"
-AVAIL=$(df -BG /mnt/blockstore | awk 'NR==2 {print $4}' | sed 's/G//')
-if [ "$AVAIL" -lt "50" ]; then
-    echo -e "${YELLOW}Warning: Less than 50GB available on block storage${NC}"
-    df -h /mnt/blockstore
-fi
-
-# Verify media directory structure
-if [ ! -d "/mnt/blockstore/plex/media" ]; then
-    echo -e "${YELLOW}Creating media directories...${NC}"
-    mkdir -p /mnt/blockstore/plex/media/{Movies,"TV Shows",Music,Photos}
-    chown -R 1000:1000 /mnt/blockstore/plex
-    chmod -R 755 /mnt/blockstore/plex
-fi
-
-# Create required directories
-echo -e "\n${YELLOW}Creating directories...${NC}"
-mkdir -p /opt/plex/{transcode,database}
-
-# Create media directories on block storage if they don't exist
-echo -e "\n${YELLOW}Setting up media directories...${NC}"
-if [ ! -d "/mnt/blockstore/plex/media" ]; then
-    mkdir -p /mnt/blockstore/plex/media/{Movies,"TV Shows",Music,Photos}
-    echo -e "${GREEN}✓ Created media directories${NC}"
-fi
+# Set all permissions at once
+echo -e "\n${YELLOW}Setting permissions...${NC}"
+chown -R 1000:1000 /opt/plex /mnt/blockstore/plex
+chmod -R 755 /opt/plex /mnt/blockstore/plex
 
 # Create symlink to block storage
 echo -e "\n${YELLOW}Creating symlinks...${NC}"
@@ -321,13 +254,13 @@ else
     exit 1
 fi
 
-# Set permissions
-chown -R 1000:1000 /opt/plex
-chmod -R 755 /opt/plex
-chmod -R 755 /opt/media 2>/dev/null || true
-
-echo -e "${GREEN}✓ Created standard Plex library folders:${NC}"
-ls -l /opt/plex/media/
+# Verify space
+echo -e "\n${YELLOW}Checking available space...${NC}"
+AVAIL=$(df -BG /mnt/blockstore | awk 'NR==2 {print $4}' | sed 's/G//')
+if [ "$AVAIL" -lt "50" ]; then
+    echo -e "${YELLOW}Warning: Less than 50GB available on block storage${NC}"
+    df -h /mnt/blockstore
+fi
 
 # Start Plex
 docker-compose up -d
