@@ -269,6 +269,31 @@ setup_vultr() {
                 echo "/dev/vdb /mnt/blockstore ext4 defaults,nofail 0 0" >> /etc/fstab
                 echo -e "${GREEN}✓ Added to fstab for persistent mount${NC}"
             fi
+
+            # Migrate media to block storage
+            echo -e "\n${YELLOW}Setting up media directories on block storage...${NC}"
+            mkdir -p /mnt/blockstore/plex/media/{Movies,TV\ Shows,Music,Photos}
+            
+            # Set correct permissions
+            chown -R 1000:1000 /mnt/blockstore/plex
+            chmod -R 755 /mnt/blockstore/plex
+            
+            # Migrate existing data if any
+            if [ -d "/opt/plex/media" ]; then
+                echo -e "${YELLOW}Migrating existing media to block storage...${NC}"
+                rsync -av --remove-source-files /opt/plex/media/* /mnt/blockstore/plex/media/
+                
+                # Remove old directory and create symlink
+                rm -rf /opt/plex/media
+                ln -sf /mnt/blockstore/plex/media /opt/plex/media
+                
+                echo -e "${GREEN}✓ Media migrated to block storage${NC}"
+            fi
+            
+            # Verify symlinks
+            echo -e "${YELLOW}Verifying storage setup:${NC}"
+            readlink -f /opt/plex/media
+            df -h /mnt/blockstore
         fi
     fi
 }
