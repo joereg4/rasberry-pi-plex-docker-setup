@@ -97,6 +97,10 @@ setup_vultr() {
             rm -rf /usr/local/go && tar -C /usr/local -xzf go1.20.14.linux-amd64.tar.gz
             export PATH=$PATH:/usr/local/go/bin
             rm go1.20.14.linux-amd64.tar.gz
+            
+            # Add Go to current shell's PATH
+            eval "$(go env)"
+            export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
         fi
         save_state "go_installed"
     fi
@@ -107,12 +111,21 @@ setup_vultr() {
         export GOPATH=$HOME/go
         export PATH=$PATH:$GOPATH/bin
         export GO111MODULE=on
+        
+        # Ensure PATH includes Go bins
+        export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
         save_state "workspace_setup"
     fi
     
     # Install Vultr CLI
     if [ "$CURRENT_STATE" = "workspace_setup" ] || [ "$CURRENT_STATE" = "init" ]; then
         go install github.com/vultr/vultr-cli/v3@v3.3.0
+        # Verify vultr-cli is in PATH
+        if ! command -v vultr-cli &> /dev/null; then
+            echo -e "${RED}Error: vultr-cli not found in PATH${NC}"
+            echo -e "${YELLOW}Adding Go bins to PATH...${NC}"
+            export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
+        fi
         save_state "vultr_cli_installed"
     fi
     
