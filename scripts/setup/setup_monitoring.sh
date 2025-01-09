@@ -277,6 +277,41 @@ setup_vultr() {
 setup_monitoring() {
     echo -e "\n${YELLOW}Setting up monitoring jobs${NC}"
     
+    # Configure Git and script permissions
+    echo -e "\n${YELLOW}Configuring Git and script permissions...${NC}"
+    
+    # Make all scripts executable
+    find "$(dirname "$0")/.." -type f -name "*.sh" -exec chmod +x {} \;
+    
+    # Create post-merge hook if not exists
+    if [ ! -f ".git/hooks/post-merge" ]; then
+        mkdir -p .git/hooks
+        cat > .git/hooks/post-merge << 'EOF'
+#!/bin/bash
+
+# Make all scripts executable after pull
+find scripts/ -type f -name "*.sh" -exec chmod +x {} \;
+
+# Set specific permissions for sensitive files
+chmod 600 .env 2>/dev/null || true
+chmod 600 .env.example
+
+echo "Script permissions updated!"
+EOF
+
+        # Make hook executable
+        chmod +x .git/hooks/post-merge
+    fi
+    
+    # Create .gitattributes if it doesn't exist
+    if [ ! -f ".gitattributes" ]; then
+        echo -e "# Ignore permission changes on scripts\nscripts/**/*.sh -diff" > .gitattributes
+        echo -e "${GREEN}✓ Created .gitattributes${NC}"
+    fi
+    
+    # Set core.fileMode to false
+    git config core.fileMode false
+    
     # Install monitoring tools
     echo -e "${YELLOW}Installing monitoring packages...${NC}"
     apt-get update
