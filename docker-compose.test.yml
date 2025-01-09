@@ -1,9 +1,0 @@
-services:
-  ubuntu-test:
-    build: .
-    container_name: plex-setup-test
-    privileged: true
-    volumes:
-      - ./:/opt/plex-docker-setup
-    ports:
-      - "32400:32400" 

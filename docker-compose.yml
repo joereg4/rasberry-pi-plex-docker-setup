@@ -1,6 +1,6 @@
 services:
   plex:
-    image: plexinc/pms-docker
+    image: plexinc/pms-docker:latest
     container_name: plex
     ports:
       - "32400:32400/tcp"
@@ -17,6 +17,10 @@ services:
       - PLEX_CLAIM=${PLEX_CLAIM}
       - ADVERTISE_IP=http://${PLEX_HOST}:32400/
     volumes:
-      - /opt/plex/config:/config
-      - /opt/plex/media:/media
+      - /opt/plex/database:/config
+      - /opt/plex/transcode:/transcode
+      - /mnt/blockstore/plex/media:/data
     restart: unless-stopped
+    network_mode: host
+    devices:
+      - /dev/dri:/dev/dri

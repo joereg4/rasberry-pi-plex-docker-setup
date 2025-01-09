@@ -183,13 +183,28 @@ echo "PLEX_CLAIM=$PLEX_CLAIM"
 echo "PLEX_HOST=$PLEX_HOST"
 echo "TZ=$TZ"
 
-# Create directories
-echo -e "\n${YELLOW}Creating Plex directories...${NC}"
-mkdir -p /opt/plex/config
-mkdir -p /opt/plex/media/{Movies,TV\ Shows,Music,Photos,Home\ Videos}
+# Verify block storage is set up
+echo -e "\n${YELLOW}Verifying block storage...${NC}"
+if [ ! -b "/dev/vdb" ] || ! mountpoint -q "/mnt/blockstore"; then
+    echo -e "${RED}Error: Block storage not properly set up${NC}"
+    echo "Please follow block storage setup instructions in docs/SETUP.md"
+    exit 1
+fi
 
-# Create symlink for easier access
-ln -s /opt/plex/media /opt/media 2>/dev/null || true
+# Verify media directory structure
+if [ ! -d "/mnt/blockstore/plex/media" ]; then
+    echo -e "${YELLOW}Creating media directories...${NC}"
+    mkdir -p /mnt/blockstore/plex/media/{Movies,"TV Shows",Music,Photos}
+    chown -R 1000:1000 /mnt/blockstore/plex
+    chmod -R 755 /mnt/blockstore/plex
+fi
+
+# Create required directories
+echo -e "\n${YELLOW}Creating directories...${NC}"
+mkdir -p /opt/plex/{transcode,database}
+
+# Create symlink to block storage
+ln -sf /mnt/blockstore/plex/media /opt/plex/media
 
 # Set permissions
 chown -R 1000:1000 /opt/plex
