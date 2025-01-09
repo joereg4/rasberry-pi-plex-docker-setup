@@ -118,3 +118,59 @@ df -h
 - Check `/var/log/mail.log` for email issues
 - Verify `.env` file exists and has correct permissions
 - Use `docker logs` to check container issues 
+
+# Testing Block Storage Operations
+
+## Expanding Storage
+
+When expanding block storage, SSH connections will be interrupted. Here's the proper testing procedure:
+
+### Preparation
+1. Open two SSH sessions to your server
+2. In Session 1: Monitor the logs
+   ```bash
+   tail -f /var/log/syslog
+   ```
+3. In Session 2: Run the expansion test
+
+### Testing Process
+1. First, run a dry-run to verify configuration:
+   ```bash
+   ./manage_test.sh --dry-run
+   ```
+
+2. If dry-run looks good, in Session 2:
+   ```bash
+   # Start screen session
+   screen -S storage_test
+   
+   # Run the test
+   ./manage_test.sh
+   ```
+
+3. When disconnected:
+   - Wait 30 seconds
+   - Reconnect SSH
+   - Reattach to screen:
+   ```bash
+   screen -r storage_test
+   ```
+
+4. If needed, run recovery:
+   ```bash
+   ./scripts/storage/recovery.sh
+   ```
+
+### Verification
+After expansion:
+```bash
+# Check new size
+df -h /mnt/blockstore
+
+# Verify Plex is running
+docker ps
+
+# Test write access
+touch /mnt/blockstore/test_file
+rm /mnt/blockstore/test_file
+``` 
