@@ -76,3 +76,54 @@ smartctl -H /dev/sda           # System drive
    - Use local storage for frequently accessed media
    - Consider block storage for archives
    - Monitor IO stats for bottlenecks 
+
+## Block Storage Operations
+
+Block storage is managed using the Vultr API directly.
+
+### Storage Expansion Process
+
+When storage usage exceeds the critical threshold (90%), the system will:
+
+1. Stop Plex container
+2. Unmount block storage
+3. Use Vultr API to:
+   - Detach storage: `POST /v2/blocks/{block-id}/detach`
+   - Resize volume: `PATCH /v2/blocks/{block-id}`
+   - Reattach storage: `POST /v2/blocks/{block-id}/attach`
+4. Resize filesystem
+5. Remount storage
+6. Restart Plex container
+
+### API Endpoints Used
+
+```bash
+# List block storage volumes
+GET https://api.vultr.com/v2/blocks
+
+# Get block storage details
+GET https://api.vultr.com/v2/blocks/{block-id}
+
+# Detach block storage
+POST https://api.vultr.com/v2/blocks/{block-id}/detach
+
+# Resize block storage
+PATCH https://api.vultr.com/v2/blocks/{block-id}
+{
+  "size_gb": new_size
+}
+
+# Attach block storage
+POST https://api.vultr.com/v2/blocks/{block-id}/attach
+{
+  "instance_id": "instance-id"
+}
+```
+
+### Error Handling
+
+The system will:
+- Check API response codes and error messages
+- Ensure device is available after reattachment
+- Verify filesystem resize
+- Confirm mount is successful 

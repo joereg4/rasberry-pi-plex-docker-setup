@@ -168,9 +168,10 @@ setup_vultr() {
         
         if [[ $use_block =~ ^[Yy]$ ]]; then
             echo -e "\n${YELLOW}Available Block Storage:${NC}"
-            vultr-cli block-storage list | awk '
-                NR==1 {print "LABEL                   SIZE GB    ID"}
-                NR>1 && NR<5 {printf "%-22s %-9s %s\n", $5, $4, $1}'
+            BLOCKS=$(curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
+                "https://api.vultr.com/v2/blocks")
+            echo "$BLOCKS" | jq -r '.blocks[] | "\(.label) \(.size_gb)GB \(.id)"' | \
+                awk '{printf "%-22s %-9s %s\n", $1, $2, $3}'
             echo "Enter your Block Storage ID from above:"
             read -r block_id
             sed -i "s/VULTR_BLOCK_ID=.*/VULTR_BLOCK_ID=$block_id/" .env
@@ -230,7 +231,9 @@ setup_vultr() {
             
             # Verify attachment status
             echo -e "${YELLOW}Verifying block storage attachment...${NC}"
-            if ! vultr-cli block-storage get $block_id | grep -q "active"; then
+            BLOCK_STATUS=$(curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
+                "https://api.vultr.com/v2/blocks/${block_id}")
+            if ! echo "$BLOCK_STATUS" | jq -r '.block.status' | grep -q "active"; then
                 echo -e "${RED}Error: Block storage not properly attached${NC}"
                 exit 1
             fi
