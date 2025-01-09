@@ -21,6 +21,8 @@ NC='\033[0m'
 ALERT_THRESHOLD=75      # Percentage - Warning email
 CRITICAL_THRESHOLD=90   # Percentage - Auto expand
 BLOCK_INCREMENT=50      # GB - Smaller increments
+EXPANSION_LOCK="/tmp/storage_expansion.lock"  # Lock file for expansion
+MAX_WAIT=300           # Maximum seconds to wait for operations
 
 
 # Debug: Show current directory and .env location
@@ -74,43 +76,38 @@ check_block_storage() {
 
 # Function to expand block storage using Vultr API
 expand_storage() {
+    # Check if expansion is already in progress
+    if [ -f "$EXPANSION_LOCK" ]; then
+        echo -e "${YELLOW}Storage expansion already in progress${NC}"
+        exit 0
+    fi
+
+    # Create lock file
+    touch "$EXPANSION_LOCK"
+
     local current_size=$(get_block_size)
     local new_size=$((current_size + BLOCK_INCREMENT))
     
-    # Save expansion state
-    echo "size=$new_size" > /tmp/storage_expansion_state
-    
-    echo -e "\n${YELLOW}=== Starting Block Storage Expansion ===${NC}"
-    echo -e "Current Size: ${current_size}GB"
-    echo -e "Target Size: ${new_size}GB"
+    echo -e "\n${YELLOW}=== Starting Block Storage Expansion ===${NC}" >> /var/log/plex-storage.log
     
     # 1. Stop Plex and unmount storage
-    echo -e "${YELLOW}Stopping Docker containers...${NC}"
-    docker-compose down || true
+    docker-compose down >> /var/log/plex-storage.log 2>&1
+    umount /dev/vdb >> /var/log/plex-storage.log 2>&1
     
-    echo -e "${YELLOW}Unmounting block storage...${NC}"
-    umount /dev/vdb || true
-    
-    echo -e "${YELLOW}WARNING: SSH connection may be interrupted during detachment${NC}"
-    echo -e "${YELLOW}If disconnected, wait 30 seconds and reconnect${NC}"
-    echo -e "${YELLOW}Then run: ./scripts/storage/manage_storage.sh resume${NC}"
-    sleep 5
-    
-    # 2. Detach block storage
-    echo -e "${YELLOW}Detaching block storage...${NC}"
+    # 2. Detach and wait for completion
     DETACH_RESPONSE=$(curl -s -X POST \
         -H "Authorization: Bearer ${VULTR_API_KEY}" \
         "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}/detach")
     
-    if ! echo "$DETACH_RESPONSE" | jq -e '.error' > /dev/null; then
-        echo -e "${GREEN}✓ Detachment initiated${NC}"
-    else
-        ERROR_MSG=$(echo "$DETACH_RESPONSE" | jq -r '.error.message')
-        echo -e "${RED}Error detaching block storage: $ERROR_MSG${NC}"
-        exit 1
-    fi
-    
-    sleep 10
+    # Wait for detachment to complete
+    for i in $(seq 1 $MAX_WAIT); do
+        BLOCK_STATUS=$(curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
+            "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}")
+        if echo "$BLOCK_STATUS" | jq -r '.block.status' | grep -q "detached"; then
+            break
+        fi
+        sleep 1
+    done
     
     # 3. Resize block storage
     echo -e "${YELLOW}Resizing block storage...${NC}"
@@ -166,6 +163,13 @@ expand_storage() {
     docker-compose up -d
     
     echo -e "\n${GREEN}=== Block Storage Expansion Complete ===${NC}"
+    
+    # Cleanup
+    rm -f "$EXPANSION_LOCK"
+    
+    # Notify of completion
+    echo "Block storage expansion completed. New size: ${new_size}GB" | \
+        mail -s "Storage Expansion Complete - Plex Server" "$NOTIFY_EMAIL"
 }
 
 # Function to resume expansion after disconnect
