@@ -323,17 +323,19 @@ mkdir -p .git/hooks
 cat > .git/hooks/post-merge << 'EOF'
 #!/bin/bash
 
-# Make all scripts executable after pull
+echo "Running post-merge hook..."
+
+# Make all scripts executable
 find scripts/ -type f -name "*.sh" -exec chmod +x {} \;
 
 # Set specific permissions for sensitive files
 chmod 600 .env 2>/dev/null || true
 chmod 600 .env.example
 
-echo "Script permissions updated!"
+echo "Updated file permissions"
 EOF
 
-# Make hook executable
+# Make the hook executable
 chmod +x .git/hooks/post-merge
 
 # Create .gitattributes if it doesn't exist
