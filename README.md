@@ -1,195 +1,85 @@
 # Plex Docker Setup
 
-Docker-based Plex Media Server setup with easy deployment options.
+A streamlined Docker setup for Plex Media Server with block storage support.
 
-## Local Setup
+## Features
 
-1. Clone the repository:
+- Docker-based Plex Media Server
+- Block storage support for media files
+- Automated setup script
+- Proper permissions handling
+- Easy updates and maintenance
+
+## Prerequisites
+
+- Ubuntu 22.04 LTS
+- Docker installed
+- Git installed
+- Block storage attached to server
+
+## Quick Start
+
+1. **Prepare Block Storage**
+   ```bash
+   # Check your block storage device
+   lsblk
+   ```
+   Look for your block storage (usually `/dev/vdc` on Vultr)
+
+2. **Clone & Setup**
    ```bash
    git clone https://github.com/joereg4/plex-docker-setup.git
    cd plex-docker-setup
+   chmod +x scripts/setup/*.sh
+   sudo ./scripts/setup/setup_plex.sh
    ```
 
-2. Create environment file:
-   ```bash
-   cp .env.example .env
-   ```
+3. **Configure Plex**
+   - Access Plex at `http://YOUR_SERVER_IP:32400/web`
+   - Sign in with your Plex account
+   - Add libraries using these paths:
+     * Movies: `/data/Movies`
+     * TV Shows: `/data/TV Shows`
+     * Music: `/data/Music`
+     * Photos: `/data/Photos`
 
-3. Update `.env` file:
-   - Get your claim token from [plex.tv/claim](https://plex.tv/claim)
-   - Set PLEX_HOST to `localhost`
-   - Verify timezone is correct
+## Documentation
 
-4. Start Plex:
-   ```bash
-   docker-compose up -d
-   ```
-
-## Cloud Deployment
-
-This setup can be deployed to any VPS provider. We recommend [Vultr](https://www.vultr.com/?ref=9448061) for their:
-- Global network of data centers
-- High-performance SSD servers
-- Competitive pricing
-- Simple setup process
-
-1. SSH into your server:
-   ```bash
-   ssh root@YOUR_SERVER_IP
-   ```
-
-2. Run the setup script:
-   ```bash
-   curl -s https://raw.githubusercontent.com/joereg4/plex-docker-setup/main/scripts/setup.sh | bash
-   ```
-
-3. Update `.env` file:
-   ```bash
-   cd plex-docker-setup
-   nano .env
-   ```
-   - Get a new claim token from [plex.tv/claim](https://plex.tv/claim)
-   - Update PLEX_HOST to your server IP
-   - Comment out the localhost line
-
-4. Start Plex:
-   ```bash
-   docker-compose up -d
-   ```
-
-## Security Recommendations
-
-Basic security measures for your server:
-- Use SSH key authentication (strongly recommended)
-- Enable basic firewall rules
-- Keep system and Docker images updated
-- Use strong passwords
-
-For detailed security setup, see [SECURITY.md](docs/SECURITY.md)
-
-## Troubleshooting
-
-Common issues and solutions are documented in [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
-
-## Custom Domain Setup
-
-If you want to use a custom domain (e.g., plex.yourdomain.com):
-
-1. Add DNS record:
-   - Create an A record pointing to your server IP
-   - Example: `plex.yourdomain.com -> YOUR_SERVER_IP`
-   - For Cloudflare users, see [DOMAIN_SETUP.md](docs/DOMAIN_SETUP.md)
-
-2. Update `.env`:
-   ```bash
-   PLEX_HOST=plex.yourdomain.com
-   ```
-
-Note: For security reasons, it's recommended to:
-- Use HTTPS (Plex handles this automatically)
-- Keep your server updated
-- Use strong passwords
-- Configure your firewall appropriately
+- [Setup Guide](docs/SETUP.md) - Detailed installation instructions
+- [Domain Setup](docs/DOMAIN_SETUP.md) - Configure custom domain
+- [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
 
 ## Directory Structure
 
 ```
-/opt/plex/
-├── config/    # Plex configuration
-└── media/     # Media files
+/mnt/blockstore/plex/media/  # Media storage
+├── Movies
+├── TV Shows
+├── Music
+└── Photos
 
-# When using block storage
-/mnt/blockstore/
-└── plex/
-    └── media/     # Media files on block storage
+/opt/plex/  # Plex configuration
+├── database
+└── transcode
 ```
 
-## Environment Variables
+## Maintenance
 
-- `PLEX_CLAIM`: Your Plex claim token (get from plex.tv/claim)
-- `PLEX_HOST`: Server IP/hostname or custom domain
-- `TZ`: Timezone (default: America/Chicago)
-
-## Storage Management
-
-Monitor and optimize your Plex storage:
-
-```bash
-# Check storage usage
-./scripts/storage/check_storage.sh
-
-# Find optimization opportunities
-./scripts/optimize/optimize_media.sh
-
-# Monitor all storage types
-./scripts/storage/monitor_storage.sh
-
-# Migrate between storage types
-./scripts/storage/migrate_storage.sh to-block    # Move to block storage
-./scripts/storage/migrate_storage.sh to-local    # Move to local storage
-```
-
-The scripts will help you:
-- Track storage usage
-- Identify large files
-- Find optimization candidates
-- Monitor metadata growth
-- Migrate between storage types
-- Monitor storage health
-
-### Block Storage vs Local Storage
-
-**Local Storage**:
-- Included with your instance
-- Better performance
-- Fixed size
-
-**Block Storage**:
-- Can be expanded as needed
-- Movable between instances
-- Additional cost ($1/10GB/month)
-- Slightly lower performance
-
-Choose block storage if you:
-- Need flexible storage sizing
-- Plan to upgrade/migrate servers
-- Want to separate media from system
-
-## Security Note
-
-This is a public repository. Never commit sensitive information like:
-- Claim tokens
-- Passwords
-- API keys
-- Server IPs
+- **Update Plex**: `docker-compose pull && docker-compose up -d`
+- **Check Logs**: `docker-compose logs plex`
+- **Restart Plex**: `docker-compose restart plex`
 
 ## Contributing
 
-Feel free to open issues or submit pull requests! 
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md).
 
-## Server Requirements
+## License
 
-### Network Configuration
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-#### IPv6 (Recommended)
-- Enable IPv6 during Vultr instance creation
-- Use IPv6 address in `.env` configuration
-- Better future-proofing
-- Often better performance on modern networks
+## Support
 
-#### IPv4 (Alternative)
-- Still fully supported
-- Use IPv4 address in `.env` configuration
-- Might be required for some legacy networks
-
-Configure in `.env`:
-```bash
-# For IPv6
-PLEX_HOST=YOUR_IPV6_ADDRESS
-
-# For IPv4
-PLEX_HOST=YOUR_IPV4_ADDRESS
-```
-
-Both address types will work with the setup script and Plex server.
-Choose based on your network requirements and preferences. 
+If you encounter any issues:
+1. Check the [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
+2. Open an issue on GitHub
+3. Provide logs and system information 
