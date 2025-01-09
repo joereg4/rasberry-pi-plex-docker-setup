@@ -83,67 +83,59 @@ expand_storage() {
     local current_size=$(get_block_size)
     local new_size=$((current_size + BLOCK_INCREMENT))
     
-    echo -e "${YELLOW}Expanding block storage from ${current_size}GB to ${new_size}GB${NC}"
+    echo -e "\n${YELLOW}=== Starting Block Storage Expansion ===${NC}"
+    echo -e "Current Size: ${current_size}GB"
+    echo -e "Target Size: ${new_size}GB"
     
-    # Call Vultr API
-    echo -e "\n${YELLOW}Calling Vultr API...${NC}"
-    curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
-         -H "Content-Type: application/json" \
-         -X PATCH \
-         -d "{\"size_gb\": ${new_size}}" \
-         --verbose \
-         "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}" > /tmp/vultr_response
+    # 1. Stop Plex and unmount storage
+    echo -e "${YELLOW}Stopping Docker containers...${NC}"
+    docker-compose down || true
     
-    echo -e "\n${YELLOW}API Response:${NC}"
-    cat /tmp/vultr_response
+    # Unmount block storage
+    echo -e "${YELLOW}Unmounting block storage...${NC}"
+    umount /dev/vdb || true
     
-    if [ $? -eq 0 ]; then
-        # Check API response
-        if grep -q "error" /tmp/vultr_response; then
-            echo -e "${RED}Vultr API Error:${NC}"
-            cat /tmp/vultr_response
-            rm /tmp/vultr_response
-            exit 1
-        fi
-        
-        echo "Waiting for resize to complete..."
-        # Wait up to 5 minutes for resize
-        for i in {1..30}; do
-            echo -n "."
-            sleep 10
-            # Check Vultr API for current size
-            current_size=$(curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
-                "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}" | \
-                grep -o '"size_gb":[0-9]*' | cut -d: -f2)
-            echo -e "\nChecking size: ${current_size}GB"
-            
-            if [ "$current_size" -ge "$new_size" ]; then
-                echo -e "\n${GREEN}Block storage expanded successfully${NC}"
-                echo "Waiting for device to update..."
-                sleep 30  # Wait for device to catch up
-                break
-            fi
-        done
-        
-        # Grow the filesystem
-        echo "Growing filesystem..."
-        if [ ! -b "/dev/vdb" ]; then
-            echo -e "${RED}Error: Block device /dev/vdb not found${NC}"
-            exit 1
-        fi
-        resize2fs /dev/vdb
-        
-        # Verify expansion
-        new_actual_size=$(get_block_size)
-        if [ "$new_actual_size" -ge "$new_size" ]; then
-            echo -e "${GREEN}Storage expansion complete${NC}"
-        else
-            echo -e "${RED}Warning: New size ($new_actual_size GB) less than expected ($new_size GB)${NC}"
-        fi
-    else
-        echo -e "${RED}Failed to expand storage via Vultr API${NC}"
-        exit 1
-    fi
+    # Check for processes using the mount
+    echo -e "${YELLOW}Checking for processes using block storage...${NC}"
+    lsof | grep /mnt/blockstore || true
+    
+    # 2. Resize block storage
+    echo -e "${YELLOW}Calling Vultr API to resize block storage...${NC}"
+    vultr-cli block-storage resize $VULTR_BLOCK_ID --size=$new_size
+    
+    # Verify resize operation
+    echo -e "${YELLOW}Verifying resize operation...${NC}"
+    vultr-cli block-storage get $VULTR_BLOCK_ID
+    
+    # 3. Re-attach block storage
+    echo -e "${YELLOW}Detaching block storage...${NC}"
+    vultr-cli block-storage detach $VULTR_BLOCK_ID
+    sleep 10
+    
+    echo -e "${YELLOW}Reattaching block storage...${NC}"
+    vultr-cli block-storage attach $VULTR_BLOCK_ID --instance $VULTR_INSTANCE_ID
+    sleep 20
+    
+    # 4. Expand filesystem
+    echo -e "${YELLOW}Verifying block device...${NC}"
+    lsblk
+    
+    echo -e "${YELLOW}Expanding filesystem...${NC}"
+    e2fsck -f /dev/vdb
+    resize2fs -f /dev/vdb
+    
+    # 5. Remount and verify
+    echo -e "${YELLOW}Remounting block storage...${NC}"
+    mount /dev/vdb /mnt/blockstore
+    
+    echo -e "${YELLOW}Verifying new size:${NC}"
+    df -h /mnt/blockstore
+    
+    # 6. Restart Docker and Plex
+    echo -e "${YELLOW}Restarting Docker containers...${NC}"
+    docker-compose up -d
+    
+    echo -e "\n${GREEN}=== Block Storage Expansion Complete ===${NC}"
 }
 
 # Main logic

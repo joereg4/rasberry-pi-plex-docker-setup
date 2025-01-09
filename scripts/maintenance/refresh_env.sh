@@ -19,6 +19,13 @@ echo "VULTR_API_KEY=${VULTR_API_KEY:0:8}..." # Show only first 8 chars for secur
 echo "VULTR_BLOCK_ID=$VULTR_BLOCK_ID"
 echo "VULTR_INSTANCE_ID=$VULTR_INSTANCE_ID"
 
+# Update vultr-cli config if installed
+if command -v vultr-cli &> /dev/null; then
+    echo -e "\n${YELLOW}Updating Vultr CLI configuration...${NC}"
+    echo "$VULTR_API_KEY" | vultr-cli config
+    echo -e "${GREEN}✓ Vultr CLI configuration refreshed${NC}"
+fi
+
 echo -e "\n${GREEN}Email Configuration:${NC}"
 echo "SMTP_HOST=$SMTP_HOST"
 echo "SMTP_PORT=$SMTP_PORT"

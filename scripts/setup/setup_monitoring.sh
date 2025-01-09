@@ -65,9 +65,9 @@ setup_email() {
     echo -e "${GREEN}✓ Test email sent to $notify_email${NC}"
 }
 
-# Function to install and configure Vultr CLI
+# Function to setup Vultr monitoring
 setup_vultr() {
-    echo -e "\n${YELLOW}Setting up Vultr CLI${NC}"
+    echo -e "\n${YELLOW}Setting up Vultr monitoring...${NC}"
     
     # Install Go if needed
     if ! command -v go &> /dev/null; then
@@ -93,6 +93,11 @@ setup_vultr() {
     # Update .env and export immediately
     sed -i "s/VULTR_API_KEY=.*/VULTR_API_KEY=$vultr_api_key/" .env
     export VULTR_API_KEY="$vultr_api_key"
+    
+    # Configure vultr-cli
+    echo -e "\n${YELLOW}Configuring Vultr CLI...${NC}"
+    echo "$vultr_api_key" | vultr-cli config
+    echo -e "${GREEN}✓ Vultr CLI configured${NC}"
     
     # Test the API key
     if command -v vultr-cli &> /dev/null; then
@@ -131,6 +136,39 @@ setup_vultr() {
 
                 # Setup block storage
                 echo -e "\n${YELLOW}Setting up block storage...${NC}"
+                
+                # Attach block storage using Vultr CLI
+                echo -e "${YELLOW}Attaching block storage to instance...${NC}"
+                vultr-cli block-storage attach $block_id --instance $instance_id
+                
+                # Wait for device to appear
+                echo -e "${YELLOW}Waiting for block device...${NC}"
+                for i in {1..30}; do
+                    if [ -b "/dev/vdb" ]; then
+                        echo -e "${GREEN}✓ Block device detected${NC}"
+                        break
+                    fi
+                    echo -n "."
+                    sleep 2
+                done
+                
+                # Verify attachment status
+                echo -e "${YELLOW}Verifying block storage attachment...${NC}"
+                if ! vultr-cli block-storage get $block_id | grep -q "active"; then
+                    echo -e "${RED}Error: Block storage not properly attached${NC}"
+                    exit 1
+                fi
+                
+                # Verify device exists and is accessible
+                if [ ! -b "/dev/vdb" ]; then
+                    echo -e "${RED}Error: Block device /dev/vdb not found${NC}"
+                    exit 1
+                fi
+                
+                # Show block device info
+                echo -e "${YELLOW}Block device details:${NC}"
+                lsblk /dev/vdb
+                
                 mkdir -p /mnt/blockstore
                 
                 # Check if device needs formatting
@@ -141,11 +179,31 @@ setup_vultr() {
 
                 # Mount the device
                 mount /dev/vdb /mnt/blockstore
+                echo -e "${YELLOW}Verifying mount point...${NC}"
+                if ! mountpoint -q /mnt/blockstore; then
+                    echo -e "${RED}Error: Failed to mount block storage${NC}"
+                    exit 1
+                fi
+                
+                # Check mount permissions and space
+                echo -e "${YELLOW}Checking mount details:${NC}"
+                df -h /mnt/blockstore
+                echo -e "${YELLOW}Mount permissions:${NC}"
+                ls -ld /mnt/blockstore
+                
+                # Verify write access
+                echo -e "${YELLOW}Testing write access...${NC}"
+                if ! touch /mnt/blockstore/test_write 2>/dev/null; then
+                    echo -e "${RED}Error: Cannot write to mount point${NC}"
+                    exit 1
+                fi
+                rm -f /mnt/blockstore/test_write
+                
                 echo -e "${GREEN}✓ Block storage mounted${NC}"
 
                 # Add to fstab for persistent mount
                 if ! grep -q "/dev/vdb" /etc/fstab; then
-                    echo "/dev/vdb /mnt/blockstore ext4 defaults 0 0" >> /etc/fstab
+                    echo "/dev/vdb /mnt/blockstore ext4 defaults,nofail 0 0" >> /etc/fstab
                     echo -e "${GREEN}✓ Added to fstab for persistent mount${NC}"
                 fi
             fi
@@ -163,7 +221,7 @@ setup_monitoring() {
     # Install monitoring tools
     echo -e "${YELLOW}Installing monitoring packages...${NC}"
     apt-get update
-    apt-get install -y sysstat
+    apt-get install -y sysstat parted hdparm
     
     # Verify installations
     if ! command -v iostat &> /dev/null; then
