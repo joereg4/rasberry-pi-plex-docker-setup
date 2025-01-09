@@ -29,11 +29,18 @@ Before running the setup script, we need to prepare the block storage:
    ```bash
    git clone https://github.com/joereg4/plex-docker-setup.git
    cd plex-docker-setup
+   chmod +x scripts/setup/*.sh
    ```
 
 2. Get your Plex claim token from [plex.tv/claim](https://plex.tv/claim)
 
-3. Set up Plex:
+3. Copy and edit the environment file:
+   ```bash
+   cp .env.example .env
+   nano .env    # Add your Plex claim token here
+   ```
+
+4. Set up Plex:
    ```bash
    sudo ./scripts/setup/setup_plex.sh
    ```
