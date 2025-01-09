@@ -250,6 +250,12 @@ for dir in "${REQUIRED_DIRS[@]}"; do
     fi
 done
 
+# Remove any recursive symlinks
+if [ -L "/mnt/blockstore/plex/media/media" ]; then
+    echo -e "${YELLOW}Removing recursive symlink...${NC}"
+    rm "/mnt/blockstore/plex/media/media"
+fi
+
 # Set all permissions at once
 echo -e "\n${YELLOW}Setting permissions...${NC}"
 chown -R 1000:1000 /opt/plex /mnt/blockstore/plex

@@ -56,11 +56,47 @@ Before running the setup script, we need to prepare the block storage:
    - Open `http://YOUR_SERVER_IP:32400/web`
    - Sign in with your Plex account
 
-2. Add your media libraries:
+2. Set up your Plex libraries:
+   a. Click the '+' button next to 'Libraries' in the left sidebar
+
+   b. For each library type (Movies, TV Shows, etc.):
+      - Choose the appropriate library type
+      - Name your library (e.g., "Movies")
+      - Click "Add Folders"
+      - Click "Browse for Media Folder"
+      - Navigate to `/data`
+      - Select the corresponding folder:
+        * Movies: `/data/Movies`
+        * TV Shows: `/data/TV Shows`
+        * Music: `/data/Music`
+        * Photos: `/data/Photos`
+
+   c. Advanced Settings (recommended):
+      - Enable "Scan my library automatically"
+      - Enable "Run a partial scan when changes are detected"
+
+   > Important: Use these exact paths in Plex:
    - Movies: `/data/Movies`
    - TV Shows: `/data/TV Shows`
    - Music: `/data/Music`
    - Photos: `/data/Photos`
+
+   Note: While your media is stored in `/mnt/blockstore/plex/media/` on the server,
+   Plex sees these directories as `/data/` inside the container.
+
+3. Test your libraries:
+   ```bash
+   # On your server, create a test file
+   sudo touch "/mnt/blockstore/plex/media/Movies/test.mp4"
+   
+   # In Plex web interface:
+   # - Go to Movies library
+   # - Click the refresh button
+   # - You should see test.mp4 appear
+   
+   # Clean up test file
+   sudo rm "/mnt/blockstore/plex/media/Movies/test.mp4"
+   ```
 
 ## Troubleshooting
 
