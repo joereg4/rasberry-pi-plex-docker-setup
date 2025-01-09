@@ -107,43 +107,49 @@ echo -e "\n${BOLD}3. Detach Block Storage${NC}"
 if [ $DRY_RUN -eq 1 ]; then
     echo "Would detach block storage: ${VULTR_BLOCK_ID}"
 else
-curl -s -X POST \
-    -H "Authorization: Bearer ${VULTR_API_KEY}" \
-    "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}/detach"
-fi
-
-[ $DRY_RUN -eq 0 ] && progress 30 "Waiting for detachment"
-
-# Verify detachment
-echo -e "\nVerifying detachment..."
-BLOCK_STATUS=$(curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
-    "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}")
-if ! echo "$BLOCK_STATUS" | jq -r '.block.status' | grep -q "detached"; then
-    echo "Error: Block storage did not detach properly"
-    cleanup
+    curl -s -X POST \
+        -H "Authorization: Bearer ${VULTR_API_KEY}" \
+        "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}/detach"
+    
+    [ $DRY_RUN -eq 0 ] && progress 30 "Waiting for detachment"
+    
+    # Only verify if not in dry-run
+    echo -e "\nVerifying detachment..."
+    BLOCK_STATUS=$(curl -s -H "Authorization: Bearer ${VULTR_API_KEY}" \
+        "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}")
+    if ! echo "$BLOCK_STATUS" | jq -r '.block.status' | grep -q "detached"; then
+        echo "Error: Block storage did not detach properly"
+        cleanup
+    fi
 fi
 
 # 3. Resize to 150GB
 echo -e "\nResizing to 150GB..."
-curl -s -X PATCH \
-    -H "Authorization: Bearer ${VULTR_API_KEY}" \
-    -H "Content-Type: application/json" \
-    -d '{"size_gb": 150}' \
-    "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}"
-
-echo "Waiting for resize (30s)..."
-sleep 30
+if [ $DRY_RUN -eq 1 ]; then
+    echo "Would resize block storage to 150GB"
+else
+    curl -s -X PATCH \
+        -H "Authorization: Bearer ${VULTR_API_KEY}" \
+        -H "Content-Type: application/json" \
+        -d '{"size_gb": 150}' \
+        "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}"
+    
+    [ $DRY_RUN -eq 0 ] && progress 30 "Waiting for resize"
+fi
 
 # 4. Reattach
 echo -e "\nReattaching block storage..."
-curl -s -X POST \
-    -H "Authorization: Bearer ${VULTR_API_KEY}" \
-    -H "Content-Type: application/json" \
-    -d "{\"instance_id\":\"${VULTR_INSTANCE_ID}\"}" \
-    "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}/attach"
-
-echo "Waiting for reattachment (30s)..."
-sleep 30
+if [ $DRY_RUN -eq 1 ]; then
+    echo "Would reattach block storage to instance: ${VULTR_INSTANCE_ID}"
+else
+    curl -s -X POST \
+        -H "Authorization: Bearer ${VULTR_API_KEY}" \
+        -H "Content-Type: application/json" \
+        -d "{\"instance_id\":\"${VULTR_INSTANCE_ID}\"}" \
+        "https://api.vultr.com/v2/blocks/${VULTR_BLOCK_ID}/attach"
+    
+    [ $DRY_RUN -eq 0 ] && progress 30 "Waiting for reattachment"
+fi
 
 # 5. Resize filesystem
 echo -e "\nResizing filesystem..."
