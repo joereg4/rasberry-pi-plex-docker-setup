@@ -1,37 +1,42 @@
+# Dockerfile for testing Raspberry Pi 5 Plex setup
+# Supports both ARM64 (Raspberry Pi) and x86_64 (CI/CD)
 FROM ubuntu:22.04
 
 # Avoid prompts
 ENV DEBIAN_FRONTEND=noninteractive
-
-# Set Go environment variables
-ENV PATH=$PATH:/usr/local/go/bin
-ENV GOPATH=/root/go
-ENV PATH=$PATH:$GOPATH/bin
-ENV GO111MODULE=on
 
 # Install basic requirements
 RUN apt-get update && apt-get install -y \
     curl \
     wget \
     git \
-    cron \
-    mailutils \
-    postfix \
+    bash \
+    sudo \
     docker.io \
     docker-compose \
-    ffmpeg \
     e2fsprogs \
-    bc
+    util-linux \
+    udev \
+    bc \
+    && rm -rf /var/lib/apt/lists/*
 
-# Create log directory
-RUN mkdir -p /var/log && \
-    touch /var/log/mail.log
+# Install Docker Compose v2 (if not available)
+RUN if ! command -v docker compose &> /dev/null; then \
+    curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && \
+    chmod +x /usr/local/bin/docker-compose; \
+    fi
 
 # Set up test environment
-WORKDIR /plex-docker-setup
+WORKDIR /rasberry-pi-plex-docker-setup
 
-# Copy test files
+# Copy all files
 COPY . .
 
 # Make scripts executable
-RUN chmod +x scripts/*.sh
+RUN find scripts/ -type f -name "*.sh" -exec chmod +x {} \;
+
+# Create test directories
+RUN mkdir -p /test/mnt/blockstore /test/opt/plex
+
+# Set up entrypoint for tests
+ENTRYPOINT ["/bin/bash"]

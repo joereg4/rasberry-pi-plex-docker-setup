@@ -56,6 +56,7 @@ If you already have Ubuntu 22.04 LTS installed on your Raspberry Pi 5:
 - [Getting Started](docs/GETTING_STARTED.md) - **Start here!** Complete guide from unboxing to running Plex
 - [Setup Guide](docs/SETUP.md) - Detailed installation instructions
 - [Domain Setup](docs/DOMAIN_SETUP.md) - Configure custom domain
+- [Testing](docs/TESTING.md) - How to run tests in Docker
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
 
 ## Directory Structure

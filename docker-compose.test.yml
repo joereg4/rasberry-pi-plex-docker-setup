@@ -1,0 +1,22 @@
+services:
+  test:
+    image: rasberry-pi-plex-docker-setup-test:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
+    container_name: plex-test
+    privileged: true
+    volumes:
+      - .:/rasberry-pi-plex-docker-setup
+      - /var/run/docker.sock:/var/run/docker.sock
+      - test-storage:/mnt/blockstore
+      - test-plex:/opt/plex
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+    command: /bin/bash -c "cd /rasberry-pi-plex-docker-setup && ./scripts/test/run_tests.sh"
+
+volumes:
+  test-storage:
+  test-plex:
+
