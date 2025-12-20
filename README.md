@@ -21,12 +21,13 @@ A streamlined Docker setup for Plex Media Server optimized for Raspberry Pi 5 wi
 
 ## Quick Start
 
-1. **Prepare USB Storage**
-   ```bash
-   # Check your USB drive is connected
-   lsblk
-   ```
-   Your Samsung USB drive should appear as `/dev/sda`, `/dev/sdb`, etc.
+> **New to Raspberry Pi?** Start with the [Getting Started Guide](docs/GETTING_STARTED.md) for complete instructions from unboxing to running Plex.
+
+If you already have Ubuntu 22.04 LTS installed on your Raspberry Pi 5:
+
+1. **Connect USB Drive**
+   - Connect your Samsung USB drive to the Raspberry Pi 5
+   - Verify it's detected: `lsblk`
 
 2. **Clone & Setup**
    ```bash
@@ -52,6 +53,7 @@ A streamlined Docker setup for Plex Media Server optimized for Raspberry Pi 5 wi
 
 ## Documentation
 
+- [Getting Started](docs/GETTING_STARTED.md) - **Start here!** Complete guide from unboxing to running Plex
 - [Setup Guide](docs/SETUP.md) - Detailed installation instructions
 - [Domain Setup](docs/DOMAIN_SETUP.md) - Configure custom domain
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
