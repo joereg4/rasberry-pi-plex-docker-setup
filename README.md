@@ -1,38 +1,45 @@
-# Plex Docker Setup
+# Plex Docker Setup for Raspberry Pi 5
 
-A streamlined Docker setup for Plex Media Server with block storage support.
+A streamlined Docker setup for Plex Media Server optimized for Raspberry Pi 5 with USB storage support.
 
 ## Features
 
 - Docker-based Plex Media Server
-- Block storage support for media files
-- Automated setup script
+- USB storage support for media files (Samsung USB drive)
+- Automated setup script with USB device detection
 - Proper permissions handling
 - Easy updates and maintenance
+- Optimized for ARM64 architecture
 
 ## Prerequisites
 
-- Ubuntu 22.04 LTS
-- Docker installed
+- Raspberry Pi 5 (16GB RAM recommended)
+- Ubuntu 22.04 LTS ARM64
+- Docker installed (or will be installed by script)
 - Git installed
-- Block storage attached to server
+- Samsung USB drive (2TB recommended) connected
 
 ## Quick Start
 
-1. **Prepare Block Storage**
+1. **Prepare USB Storage**
    ```bash
-   # Check your block storage device
+   # Check your USB drive is connected
    lsblk
    ```
-   Look for your block storage (usually `/dev/vdc` on Vultr)
+   Your Samsung USB drive should appear as `/dev/sda`, `/dev/sdb`, etc.
 
 2. **Clone & Setup**
    ```bash
-   git clone https://github.com/joereg4/plex-docker-setup.git
-   cd plex-docker-setup
+   git clone https://github.com/joereg4/rasberry-pi-plex-docker-setup.git
+   cd rasberry-pi-plex-docker-setup
    chmod +x scripts/setup/*.sh
    sudo ./scripts/setup/setup_plex.sh
    ```
+   The script will:
+   - Detect your USB drive automatically
+   - Offer to format and mount if needed
+   - Set up all required directories
+   - Configure Plex with proper permissions
 
 3. **Configure Plex**
    - Access Plex at `http://YOUR_SERVER_IP:32400/web`
@@ -52,16 +59,18 @@ A streamlined Docker setup for Plex Media Server with block storage support.
 ## Directory Structure
 
 ```
-/mnt/blockstore/plex/media/  # Media storage
+/mnt/blockstore/plex/media/  # Media storage (on USB drive)
 ├── Movies
 ├── TV Shows
 ├── Music
 └── Photos
 
-/opt/plex/  # Plex configuration
+/opt/plex/  # Plex configuration (on microSD)
 ├── database
 └── transcode
 ```
+
+**Note**: Media files are stored on the USB drive for better performance and capacity, while Plex configuration stays on the microSD card.
 
 ## Maintenance
 

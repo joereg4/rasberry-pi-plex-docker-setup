@@ -1,54 +1,54 @@
-# Plex Server Setup Guide
+# Plex Server Setup Guide for Raspberry Pi 5
 
 ## Prerequisites
-- Ubuntu 22.04 LTS
-- Docker installed
+- Raspberry Pi 5 (16GB RAM recommended)
+- Ubuntu 22.04 LTS ARM64
+- Docker installed (or will be installed by script)
 - Git installed
-- Block storage attached to server
+- Samsung USB drive connected (2TB recommended)
 
 ## Setup Steps
 
-### 1. Block Storage Preparation
-Before running the setup script, we need to prepare the block storage:
+### 1. USB Storage Preparation
+The setup script will automatically detect and configure your USB drive, but you can prepare it manually if needed:
 
-1. Check your block storage device:
+1. Check your USB drive is connected:
    ```bash
    lsblk
    ```
-   Look for your block storage (usually `/dev/vdc` on Vultr)
+   Your Samsung USB drive should appear as `/dev/sda`, `/dev/sdb`, etc.
 
-2. Format and mount the block storage:
-   ```bash
-   sudo ./scripts/setup/mount_storage.sh
-   ```
-   This will format, mount, and set up the storage for Plex media
+2. The setup script will:
+   - Automatically detect your USB drive
+   - Offer to format it if needed (ext4 filesystem)
+   - Mount it at `/mnt/blockstore`
+   - Add it to `/etc/fstab` for automatic mounting on boot
 
 ### 2. Plex Installation
 
 1. Clone and prepare the repository:
    ```bash
-   git clone https://github.com/joereg4/plex-docker-setup.git
-   cd plex-docker-setup
+   git clone https://github.com/joereg4/rasberry-pi-plex-docker-setup.git
+   cd rasberry-pi-plex-docker-setup
    chmod +x scripts/setup/*.sh
    ```
 
 2. Get your Plex claim token from [plex.tv/claim](https://plex.tv/claim)
 
-3. Copy and edit the environment file:
-   ```bash
-   cp .env.example .env
-   nano .env    # Add your Plex claim token here
-   ```
-
-4. Set up Plex:
+3. Run the setup script:
    ```bash
    sudo ./scripts/setup/setup_plex.sh
    ```
    The script will:
+   - Detect and configure your USB drive
+   - Install Docker if needed
    - Create required directories
    - Configure permissions
+   - Prompt for Plex claim token
    - Start Plex container
    - Verify everything is working
+   
+   **Note**: The `.env` file will be created automatically from `.env.example` if it doesn't exist.
 
 ### 3. Verify Installation
 
@@ -81,8 +81,9 @@ Before running the setup script, we need to prepare the block storage:
    - Music: `/data/Music`
    - Photos: `/data/Photos`
 
-   Note: While your media is stored in `/mnt/blockstore/plex/media/` on the server,
-   Plex sees these directories as `/data/` inside the container.
+   Note: While your media is stored in `/mnt/blockstore/plex/media/` on the Raspberry Pi,
+   Plex sees these directories as `/data/` inside the container. The USB drive is mounted
+   at `/mnt/blockstore` and contains all your media files.
 
 3. Test your libraries:
    ```bash

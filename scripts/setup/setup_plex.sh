@@ -201,27 +201,186 @@ echo "PLEX_CLAIM=$PLEX_CLAIM"
 echo "PLEX_HOST=$PLEX_HOST"
 echo "TZ=$TZ"
 
-# Verify block storage is set up
-echo -e "\n${YELLOW}Verifying block storage...${NC}"
+# Verify USB storage is set up
+echo -e "\n${YELLOW}Verifying USB storage...${NC}"
 
 echo -e "\n${YELLOW}Checking available block devices:${NC}"
 lsblk
 
-# Find block device (either vdb or vdc)
-BLOCK_DEVICE=""
-for dev in vdb vdc; do
-    if [ -b "/dev/$dev" ]; then
-        BLOCK_DEVICE="/dev/$dev"
-        echo -e "${GREEN}Found block storage at $BLOCK_DEVICE${NC}"
-        break
+# Function to detect USB storage device
+detect_usb_storage() {
+    local usb_device=""
+    
+    # Check for USB devices (sda, sdb, sdc, sdd, etc.)
+    for device in /dev/sd[a-z]; do
+        if [ -b "$device" ]; then
+            # Skip if it's the boot device (usually sda1 or mmcblk0)
+            # Check if it's a USB device using udevadm
+            if udevadm info --query=property --name="$device" 2>/dev/null | grep -q "ID_BUS=usb"; then
+                # Check if it has partitions
+                if lsblk "$device" | grep -q "part"; then
+                    usb_device="$device"
+                    echo -e "${GREEN}Found USB storage device: $usb_device${NC}"
+                    break
+                fi
+            fi
+        fi
+    done
+    
+    # Fallback: if no USB device found, check for any /dev/sd* device that's not the boot device
+    if [ -z "$usb_device" ]; then
+        for device in /dev/sd[a-z]; do
+            if [ -b "$device" ]; then
+                # Skip if mounted as root or boot
+                if ! mount | grep -q "$device"; then
+                    usb_device="$device"
+                    echo -e "${YELLOW}Found potential storage device: $usb_device${NC}"
+                    break
+                fi
+            fi
+        done
     fi
-done
+    
+    echo "$usb_device"
+}
 
-if [ -z "$BLOCK_DEVICE" ]; then
-    echo -e "${RED}Error: No block storage device found${NC}"
+# Detect USB storage
+USB_DEVICE=$(detect_usb_storage)
+
+if [ -z "$USB_DEVICE" ]; then
+    echo -e "${RED}Error: No USB storage device found${NC}"
+    echo -e "${YELLOW}Please ensure your Samsung USB drive is connected${NC}"
     echo "Available devices:"
     lsblk
-    exit 1
+    echo ""
+    echo "Would you like to:"
+    echo "1) Retry detection"
+    echo "2) Manually specify device (e.g., /dev/sda)"
+    echo "3) Exit and check connections"
+    read -r choice
+    
+    case $choice in
+        2)
+            echo "Enter device path (e.g., /dev/sda):"
+            read -r USB_DEVICE
+            if [ ! -b "$USB_DEVICE" ]; then
+                echo -e "${RED}Error: Device $USB_DEVICE not found${NC}"
+                exit 1
+            fi
+            ;;
+        3)
+            exit 1
+            ;;
+        *)
+            echo -e "${RED}Exiting. Please check your USB drive connection and try again.${NC}"
+            exit 1
+            ;;
+    esac
+fi
+
+# Check if USB device is already mounted
+MOUNT_POINT=$(mount | grep "$USB_DEVICE" | awk '{print $3}' | head -1)
+
+if [ -z "$MOUNT_POINT" ]; then
+    echo -e "${YELLOW}USB device $USB_DEVICE is not mounted${NC}"
+    echo "Checking if device has a filesystem..."
+    
+    # Check for existing filesystem
+    if blkid "$USB_DEVICE"* | grep -q "TYPE="; then
+        echo -e "${GREEN}Found existing filesystem on $USB_DEVICE${NC}"
+        echo "Would you like to mount it at /mnt/blockstore? (y/n)"
+        read -r mount_choice
+        
+        if [ "$mount_choice" = "y" ] || [ "$mount_choice" = "Y" ]; then
+            # Get the partition (usually device + 1)
+            PARTITION="${USB_DEVICE}1"
+            if [ ! -b "$PARTITION" ]; then
+                PARTITION="$USB_DEVICE"
+            fi
+            
+            # Create mount point
+            mkdir -p /mnt/blockstore
+            
+            # Mount the device
+            mount "$PARTITION" /mnt/blockstore
+            
+            if [ $? -eq 0 ]; then
+                echo -e "${GREEN}✓ Successfully mounted $PARTITION at /mnt/blockstore${NC}"
+                
+                # Add to fstab for persistence
+                UUID=$(blkid -s UUID -o value "$PARTITION")
+                if [ -n "$UUID" ]; then
+                    if ! grep -q "$UUID" /etc/fstab; then
+                        echo "UUID=$UUID /mnt/blockstore ext4 defaults 0 2" >> /etc/fstab
+                        echo -e "${GREEN}✓ Added to /etc/fstab for automatic mounting${NC}"
+                    fi
+                fi
+            else
+                echo -e "${RED}Error: Failed to mount $PARTITION${NC}"
+                exit 1
+            fi
+        else
+            echo -e "${YELLOW}Please mount your USB drive manually and run the script again${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${YELLOW}No filesystem found on $USB_DEVICE${NC}"
+        echo "Would you like to format it? (WARNING: This will erase all data!) (y/n)"
+        read -r format_choice
+        
+        if [ "$format_choice" = "y" ] || [ "$format_choice" = "Y" ]; then
+            echo -e "${YELLOW}Formatting $USB_DEVICE as ext4...${NC}"
+            mkfs.ext4 -F "$USB_DEVICE"
+            
+            if [ $? -eq 0 ]; then
+                echo -e "${GREEN}✓ Formatting complete${NC}"
+                
+                # Create mount point and mount
+                mkdir -p /mnt/blockstore
+                mount "$USB_DEVICE" /mnt/blockstore
+                
+                if [ $? -eq 0 ]; then
+                    echo -e "${GREEN}✓ Successfully mounted at /mnt/blockstore${NC}"
+                    
+                    # Add to fstab
+                    UUID=$(blkid -s UUID -o value "$USB_DEVICE")
+                    if [ -n "$UUID" ]; then
+                        echo "UUID=$UUID /mnt/blockstore ext4 defaults 0 2" >> /etc/fstab
+                        echo -e "${GREEN}✓ Added to /etc/fstab for automatic mounting${NC}"
+                    fi
+                else
+                    echo -e "${RED}Error: Failed to mount after formatting${NC}"
+                    exit 1
+                fi
+            else
+                echo -e "${RED}Error: Formatting failed${NC}"
+                exit 1
+            fi
+        else
+            echo -e "${YELLOW}Please format and mount your USB drive manually and run the script again${NC}"
+            exit 1
+        fi
+    fi
+else
+    echo -e "${GREEN}✓ USB device is already mounted at $MOUNT_POINT${NC}"
+    
+    # If mounted elsewhere, check if we should use it or remount
+    if [ "$MOUNT_POINT" != "/mnt/blockstore" ]; then
+        echo -e "${YELLOW}Device is mounted at $MOUNT_POINT, but we need /mnt/blockstore${NC}"
+        echo "Would you like to remount it at /mnt/blockstore? (y/n)"
+        read -r remount_choice
+        
+        if [ "$remount_choice" = "y" ] || [ "$remount_choice" = "Y" ]; then
+            umount "$MOUNT_POINT"
+            mkdir -p /mnt/blockstore
+            mount "$USB_DEVICE" /mnt/blockstore
+            echo -e "${GREEN}✓ Remounted at /mnt/blockstore${NC}"
+        else
+            echo -e "${YELLOW}Using existing mount point: $MOUNT_POINT${NC}"
+            # Update the mount point variable
+            MOUNT_POINT="/mnt/blockstore"
+        fi
+    fi
 fi
 
 # Create required directories

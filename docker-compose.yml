@@ -12,5 +12,5 @@ services:
       - /opt/plex/transcode:/transcode
       - /mnt/blockstore/plex/media:/data
     restart: unless-stopped
-    devices:
-      - /dev/dri:/dev/dri
+    # Hardware transcoding removed for Raspberry Pi 5 compatibility
+    # Pi 5 uses VideoCore VII GPU which requires different configuration
