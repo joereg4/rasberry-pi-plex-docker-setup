@@ -2,7 +2,7 @@
 
 ## Prerequisites
 - Raspberry Pi 5 (16GB RAM recommended)
-- Ubuntu 22.04 LTS ARM64
+- Ubuntu Server 24.04.3 LTS (64-bit) or newer
 - Docker installed (or will be installed by script)
 - Git installed
 - Samsung USB drive connected (2TB recommended)

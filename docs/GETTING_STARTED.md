@@ -16,7 +16,7 @@ Complete step-by-step guide from unboxing to running Plex on your Raspberry Pi 5
 
 ### Software
 - **Raspberry Pi Imager** - Download from [raspberrypi.com/software](https://www.raspberrypi.com/software/)
-- **Ubuntu 22.04 LTS ARM64** image (will be downloaded via Imager)
+- **Ubuntu Server 24.04.3 LTS (64-bit)** - Recommended for Raspberry Pi 5 (will be downloaded via Imager)
 
 ## Step 1: Initial Hardware Setup
 
@@ -30,13 +30,43 @@ Complete step-by-step guide from unboxing to running Plex on your Raspberry Pi 5
 3. **Flash Ubuntu to the microSD card**:
    - Open Raspberry Pi Imager
    - Click "Choose OS"
-   - Select "Other general-purpose OS" → "Ubuntu" → "Ubuntu 22.04.3 LTS (Raspberry Pi)"
+   - Select "Other general-purpose OS" → "Ubuntu" → "Ubuntu Server 24.04.3 LTS (64-bit)"
+   - **Note**: If you don't see 24.04.3, Ubuntu Server 24.04 LTS or Ubuntu Server 25.04 will also work
    - Click "Choose Storage" and select your microSD card
-   - **Important**: Click the gear icon (⚙️) to configure:
-     - **Enable SSH**: Check this box
-     - **Set username and password**: Choose a username (e.g., `pi`) and strong password
-     - **Configure wireless LAN** (optional): Enter your WiFi SSID and password if using WiFi
-     - **Set locale settings**: Choose your timezone
+   - **Important**: Click the gear icon (⚙️) to configure settings. You'll be guided through these steps:
+     
+     **Step 1: Hostname**
+     - Set a hostname for your Raspberry Pi (e.g., `plex-server` or `raspberrypi`)
+     - This is how your Pi will appear on your network
+     
+     **Step 2: Localisation**
+     - **Capital/City Selection**: First, select a capital or major city near you:
+       - For US users: Select **Washington DC** (or your nearest major city)
+       - This sets the general region
+     - **Timezone Selection**: Next, choose your specific timezone:
+       - Look for options starting with `America/` followed by US cities:
+         - `America/New_York` (Eastern Time)
+         - `America/Chicago` (Central Time)
+         - `America/Denver` (Mountain Time)
+         - `America/Los_Angeles` (Pacific Time)
+       - Select the one that matches your timezone
+     - **Keyboard Layout**: Usually defaults to US English, which is fine for most users
+     - This ensures correct time for Plex media metadata
+     
+     **Step 3: User**
+     - **Set username**: Choose a username (e.g., `pi` or `plex`)
+     - **Set password**: Choose a strong password
+     - **Note**: You'll need this to log in via SSH
+     
+     **Step 4: Wi-Fi** (Optional - skip if using Ethernet)
+     - **Configure wireless LAN**: Enter your WiFi SSID and password
+     - **Country**: Select your country code (required for WiFi)
+     - **Note**: If using Ethernet cable, you can skip this step
+     
+     **Step 5: Remote Access**
+     - **Enable SSH**: Check this box (required for remote access)
+     - This allows you to connect to your Pi from another computer
+   
    - Click "Save" then "Write"
    - Wait for the image to be written and verified (this may take 10-15 minutes)
 
