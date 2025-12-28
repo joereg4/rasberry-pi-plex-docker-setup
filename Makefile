@@ -52,7 +52,7 @@ test-shell: build-test
 
 clean:
 	@echo "Cleaning up test containers and volumes..."
-	@docker-compose -f docker-compose.test.yml down -v 2>/dev/null || true
+	@docker compose -f docker-compose.test.yml down -v 2>/dev/null || true
 	@docker rmi rasberry-pi-plex-docker-setup-test:latest 2>/dev/null || true
 	@echo "✓ Cleanup complete"
 

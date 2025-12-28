@@ -77,9 +77,9 @@ If you already have Ubuntu 22.04 LTS installed on your Raspberry Pi 5:
 
 ## Maintenance
 
-- **Update Plex**: `docker-compose pull && docker-compose up -d`
-- **Check Logs**: `docker-compose logs plex`
-- **Restart Plex**: `docker-compose restart plex`
+- **Update Plex**: `docker compose pull && docker compose up -d`
+- **Check Logs**: `docker compose logs plex`
+- **Restart Plex**: `docker compose restart plex`
 
 ## Contributing
 

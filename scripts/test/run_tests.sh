@@ -48,7 +48,7 @@ run_test "Scripts are executable" "
 
 # Test 2: Check if docker-compose.yml is valid
 run_test "docker-compose.yml is valid" "
-    docker-compose -f docker-compose.yml config > /dev/null
+    docker compose -f docker-compose.yml config > /dev/null
 "
 
 # Test 3: Check if .env.example exists and has required variables

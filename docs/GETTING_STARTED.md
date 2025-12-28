@@ -221,7 +221,7 @@ docker ps
 
 # You should see a container named "plex" running
 # Check Plex logs if needed
-docker-compose logs plex
+docker compose logs plex
 ```
 
 ## Step 5: Access and Configure Plex
@@ -322,14 +322,14 @@ dmesg | tail -20
 
 ```bash
 # Check Docker logs
-docker-compose logs plex
+docker compose logs plex
 
 # Check if port 32400 is in use
 sudo netstat -tulpn | grep 32400
 
 # Restart Docker
 sudo systemctl restart docker
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Can't Access Plex Web Interface
@@ -373,13 +373,13 @@ For more troubleshooting help, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 **Useful Commands**:
 ```bash
 # Restart Plex
-docker-compose restart plex
+docker compose restart plex
 
 # View logs
-docker-compose logs -f plex
+docker compose logs -f plex
 
 # Update Plex
-docker-compose pull && docker-compose up -d
+docker-compose pull && docker compose up -d
 
 # Check status
 docker ps

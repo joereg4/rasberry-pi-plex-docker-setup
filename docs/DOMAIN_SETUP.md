@@ -86,10 +86,10 @@ PLEX_HOST=plex.yourdomain.com
 1. Domain Issues:
    ```bash
    # Restart Plex container
-   docker-compose restart plex
+   docker compose restart plex
    
    # Check logs
-   docker-compose logs plex
+   docker compose logs plex
    ```
 
 2. Reset DNS Cache:

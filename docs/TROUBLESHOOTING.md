@@ -26,7 +26,7 @@
 
 2. Verify mount points:
    ```bash
-   docker-compose exec plex ls -l /media
+   docker compose exec plex ls -l /media
    ```
 
 3. Scan library:
@@ -37,12 +37,12 @@
 1. Check container status:
    ```bash
    docker ps
-   docker-compose logs plex
+   docker compose logs plex
    ```
 
 2. Verify environment:
    ```bash
-   docker-compose config
+   docker compose config
    ```
 
 ### Performance Issues

@@ -52,8 +52,8 @@ ufw enable
    apt update && apt upgrade -y
    
    # Update Docker images
-   docker-compose pull
-   docker-compose up -d
+   docker compose pull
+   docker compose up -d
    ```
 
 2. Backup Strategy:

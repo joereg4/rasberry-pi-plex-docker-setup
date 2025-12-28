@@ -47,7 +47,8 @@ if ! command -v docker &> /dev/null; then
     echo -e "${RED}Error: Docker not installed${NC}"
     echo -e "${YELLOW}Installing Docker...${NC}"
     apt-get update
-    apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y -q docker.io docker-compose
+    # Install docker.io and docker-compose-plugin (v2, Go-based - avoids Python compatibility issues)
+    apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y -q docker.io docker-compose-plugin
     
     # Start and enable Docker
     systemctl start docker
@@ -208,39 +209,36 @@ echo -e "\n${YELLOW}Checking available block devices:${NC}"
 lsblk
 
 # Function to detect USB storage device
+# Returns only the device path - all messages go to stderr
 detect_usb_storage() {
     local usb_device=""
     
     # Check for USB devices (sda, sdb, sdc, sdd, etc.)
     for device in /dev/sd[a-z]; do
         if [ -b "$device" ]; then
-            # Skip if it's the boot device (usually sda1 or mmcblk0)
-            # Check if it's a USB device using udevadm
+            # First check: Is it a USB device using udevadm?
             if udevadm info --query=property --name="$device" 2>/dev/null | grep -q "ID_BUS=usb"; then
-                # Check if it has partitions
-                if lsblk "$device" | grep -q "part"; then
-                    usb_device="$device"
-                    echo -e "${GREEN}Found USB storage device: $usb_device${NC}"
-                    break
-                fi
+                usb_device="$device"
+                echo -e "${GREEN}Found USB storage device: $usb_device${NC}" >&2
+                break
             fi
         fi
     done
     
-    # Fallback: if no USB device found, check for any /dev/sd* device that's not the boot device
+    # Fallback: if no USB device found via udevadm, check for any /dev/sd* device
+    # (some USB devices don't report ID_BUS=usb properly)
     if [ -z "$usb_device" ]; then
         for device in /dev/sd[a-z]; do
             if [ -b "$device" ]; then
-                # Skip if mounted as root or boot
-                if ! mount | grep -q "$device"; then
-                    usb_device="$device"
-                    echo -e "${YELLOW}Found potential storage device: $usb_device${NC}"
-                    break
-                fi
+                # Accept any sd* device (these are typically USB/SATA, not the SD card which is mmcblk*)
+                usb_device="$device"
+                echo -e "${YELLOW}Found potential storage device: $usb_device${NC}" >&2
+                break
             fi
         done
     fi
     
+    # Only output the device path (no other text)
     echo "$usb_device"
 }
 
@@ -440,7 +438,7 @@ if [ "$AVAIL" -lt "50" ]; then
 fi
 
 # Start Plex
-docker-compose up -d
+docker compose up -d
 
 # Wait for container to start
 echo -e "\n${YELLOW}Waiting for Plex container to start...${NC}"
@@ -449,7 +447,7 @@ if docker ps | grep -q plex; then
     echo -e "${GREEN}✓ Plex container is running${NC}"
 else
     echo -e "${RED}! Plex container failed to start${NC}"
-    echo "Check logs with: docker-compose logs plex"
+    echo "Check logs with: docker compose logs plex"
 fi
 
 echo -e "${GREEN}✓ Plex setup complete!${NC}"
