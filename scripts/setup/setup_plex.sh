@@ -45,10 +45,23 @@ export NEEDRESTART_DISABLE=1
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
     echo -e "${RED}Error: Docker not installed${NC}"
-    echo -e "${YELLOW}Installing Docker...${NC}"
+    echo -e "${YELLOW}Installing Docker from official repository...${NC}"
+    
+    # Install prerequisites
     apt-get update
-    # Install docker.io and docker-compose-plugin (v2, Go-based - avoids Python compatibility issues)
-    apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y -q docker.io docker-compose-plugin
+    apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y -q ca-certificates curl
+    
+    # Add Docker's official GPG key
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+    chmod a+r /etc/apt/keyrings/docker.asc
+    
+    # Add Docker repository
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    
+    # Install Docker and Compose plugin (v2, Go-based - avoids Python compatibility issues)
+    apt-get update
+    apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y -q docker-ce docker-ce-cli containerd.io docker-compose-plugin
     
     # Start and enable Docker
     systemctl start docker
@@ -70,6 +83,14 @@ if ! command -v docker &> /dev/null; then
         exit 1
     fi
     echo -e "${GREEN}✓ Docker installed successfully${NC}"
+    
+    # Verify compose plugin
+    if docker compose version &> /dev/null; then
+        echo -e "${GREEN}✓ Docker Compose $(docker compose version --short) installed${NC}"
+    else
+        echo -e "${RED}Docker Compose plugin installation failed${NC}"
+        exit 1
+    fi
 fi
 
 # Get claim token

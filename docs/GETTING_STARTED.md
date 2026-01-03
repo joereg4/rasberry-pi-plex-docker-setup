@@ -11,7 +11,7 @@ Complete step-by-step guide from unboxing to running Plex on your Raspberry Pi 5
 - **Power Supply** (Official Raspberry Pi 5 USB-C power supply recommended)
 - **USB-C Cable** (for power, if not included)
 - **USB Cable** (USB-A to USB-C or USB-A to USB-A, depending on your USB drive)
-- **Ethernet Cable** (for initial setup, or use WiFi)
+- **Ethernet Cable** (strongly recommended - see Wi-Fi warning below)
 - **Computer** (Windows, Mac, or Linux) to flash the OS image
 
 ### Software
@@ -58,10 +58,17 @@ Complete step-by-step guide from unboxing to running Plex on your Raspberry Pi 5
      - **Set password**: Choose a strong password
      - **Note**: You'll need this to log in via SSH
      
-     **Step 4: Wi-Fi** (Optional - skip if using Ethernet)
+     **Step 4: Wi-Fi** (⚠️ Not Recommended - Use Ethernet Instead)
      - **Configure wireless LAN**: Enter your WiFi SSID and password
      - **Country**: Select your country code (required for WiFi)
-     - **Note**: If using Ethernet cable, you can skip this step
+     
+     > ⚠️ **Wi-Fi Warning**: The Raspberry Pi 5's built-in Wi-Fi (Broadcom brcmfmac driver) has known issues, especially with 5GHz networks. You may experience kernel log spam with errors like:
+     > ```
+     > brcmfmac: brcmf_set_channel: set chanspec 0xd02e failed, reason -52
+     > ```
+     > This can cause performance issues and fill up logs. **We strongly recommend using Ethernet** for a Plex server - it's faster, more reliable, and avoids these driver problems.
+     > 
+     > If you must use Wi-Fi and experience issues, see the [Troubleshooting Guide](TROUBLESHOOTING.md#wi-fi-issues) for how to disable Wi-Fi.
      
      **Step 5: Remote Access**
      - **Enable SSH**: Check this box (required for remote access)
